@@ -1,0 +1,16 @@
+[Unit]
+Description=Exhibitor/Zookeeper health checker
+
+# forces things like the update-engine (and related services such as managed
+# CoreOS) to wait for this unit to complete
+Before=locksmithd.service
+
+[Service]
+Type=oneshot
+User=core
+RemainAfterExit=yes
+
+ExecStart=/usr/bin/bash -x /home/core/ethos-systemd/v3/util/exhibitor-health-poll.sh
+
+[Install]
+WantedBy=multi-user.target

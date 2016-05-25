@@ -1,0 +1,118 @@
+#!/usr/bin/bash -x
+
+# BEGINNING BOOTSTRAP SCRIPT
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HOMEDIR=$(eval echo "~`whoami`")
+VERSION="v4"
+source /etc/environment || :
+source $SCRIPTDIR/$VERSION/setup/helpers.sh
+
+echo "-------Beginning Bootstrap Script: $VERSION-------"
+
+# Control tier - must form an etcd2 cluster first
+if [[ "$NODE_ROLE" = "control" ]]; then
+  sudo ${SCRIPTDIR}/$VERSION/util/etcd2-setup.sh $SCRIPTDIR
+fi
+
+# Worker tier - must run the IAM proxy setup before any other containers
+if [[ "$NODE_ROLE" = "worker" && -f ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh ]]; then
+  sudo ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh $SCRIPTDIR
+fi
+
+# TODO: submit some units here (like SSH or OS update)? maybe not - etcd isnt populated yet
+
+function leader-setup() {
+  echo "-------Leader node, beginning leader setup-------"
+
+  for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
+  do
+      sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
+  done
+
+  echo "-------Leader node, writing completion flag to etcd-------"
+
+  etcdctl set /bootstrap.service/leader-bootstrapped true
+
+  echo "-------Leader node, leader is finished, continuing bootstrap-------"
+}
+
+function follower-setup() {
+  # Wait until etcd bootstrap value is set
+  # TODO: fix syntax
+  while etcdctl get /bootstrap.service/leader-bootstrapped != "true"
+  do
+    echo "-------Follower node, waiting for leader to finish setup-------"
+    sleep 10
+  done
+
+  echo "-------Follower node, leader is finished, continuing bootstrap-------"
+}
+
+# SETUP profile.d
+sudo mkdir /etc/profile.d || :
+sudo cp ${SCRIPTDIR}/$VERSION/profile.d/* /etc/profile.d/. 2>/dev/null || :
+sudo cp --dereference ${SCRIPTDIR}/$VERSION/profile.d/${NODE_ROLE}/* /etc/profile.d/.
+
+# If the bootstrap process is already complete, just run local
+# TODO: possibly add an etcd bootstrap value for "leader-started" to prevent an ASG race condition
+if [[ etcdctl get /bootstrap.service/leader-bootstrapped != "true" && "$NODE_ROLE" = "control" ]]; then
+  LEADER_IP=$(etcdctl member list | awk '{print $4}' | cut -d':' -f 2 | cut -c3- | sort | head -n1)
+  LOCAL_IP=$(curl -sS http://169.254.169.254/latest/meta-data/local-ipv4)
+
+  if [[ "$LEADER_IP" = "$LOCAL_IP" ]]; then
+    leader-setup
+  else
+    follower-setup
+  fi
+fi
+
+# Run the common scripts on all instances
+for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
+do
+    sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
+done
+
+# TODO: This does not use the helper because it sometimes expects a 4 response
+etcdctl get /environment/SCRIPTS-FORK
+if [[ $? = 4 ]]; then
+  # 4 == 404 - key not found
+  # case where a node is joining a pre-existing cluster
+  SCRIPTS_REV=$(cd $SCRIPTDIR && git rev-parse HEAD)
+  etcd-set /environment/SCRIPTS-FORK adobe-platform
+  etcd-set /environment/SCRIPTS-SHA  $SCRIPTS_REV
+fi
+
+# start services specified in $(etcdctl get /environment/services)
+# mapped to the /opt directory of these scripts
+echo "-------Beginning optional fleet submissions-------"
+for service in $(etcd-get /environment/services)
+do
+    servicedir=${SCRIPTDIR}/${VERSION}/opt/${service}
+    if [[ ! -d $servicedir ]]; then
+        continue
+    fi
+    for unit in $(ls $servicedir|grep -e '.service$\|.timer$')
+    do
+        submit-fleet-unit submit $servicedir/$unit
+        start-fleet-unit $unit
+    done
+done
+echo "-------Done optional fleet submissions-------"
+
+# FLEET UNITS SPECIFIC TO THIS NODE
+echo "-------Beginning node-specific fleet submissions-------"
+for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}|grep -e '.service$')
+do
+    submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
+    start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
+done
+echo "-------Done node-specific fleet submissions-------"
+
+# GENERAL-PURPOSE UNITS
+echo "-------Beginning general purpose fleet submissions-------"
+for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
+do
+    submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+    start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+done
+echo "-------Done general purpose fleet submissions-------"
