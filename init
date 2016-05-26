@@ -30,7 +30,7 @@ fi
 function leader-setup() {
   echo "-------Leader node, beginning leader setup-------"
 
-  etcd-set /bootstrap.service/leader-bootstrap-status started
+  etcd-set /bootstrap.service/leader-status started
 
   for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
   do
@@ -39,7 +39,7 @@ function leader-setup() {
 
   echo "-------Leader node, writing finished flag to etcd-------"
 
-  etcd-set /bootstrap.service/leader-bootstrap-status finished
+  etcd-set /bootstrap.service/leader-status finished
 
   echo "-------Leader node, leader is finished, continuing bootstrap-------"
 }
@@ -48,7 +48,7 @@ function follower-setup() {
   # Wait until etcd bootstrap value is set
   # This ensures that the etcd cluster is healthy and replicated on workers and proxy
   # TODO: fix syntax
-  while [[ $(etcdctl get /bootstrap.service/leader-bootstrap-status) != "finished" ]]
+  while [[ $(etcdctl get /bootstrap.service/leader-status) != "finished" ]]
   do
     echo "-------Follower node, waiting for leader to finish setup-------"
     sleep 10
@@ -58,7 +58,7 @@ function follower-setup() {
 }
 
 # Check the bootstrap process to see if this node should run the leader scripts
-etcdctl get /bootstrap.service/leader-bootstrap-status
+etcdctl get /bootstrap.service/leader-status
 
 if [[ $? != 0 && "$NODE_ROLE" = "control" ]]; then
   # The election process follows the following algorithm:
