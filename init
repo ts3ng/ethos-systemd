@@ -48,7 +48,7 @@ function follower-setup() {
   # Wait until etcd bootstrap value is set
   # This ensures that the etcd cluster is healthy and replicated on workers and proxy
   # TODO: fix syntax
-  while etcdctl get /bootstrap.service/leader-bootstrap-status != "finished"
+  while [[ $(etcdctl get /bootstrap.service/leader-bootstrap-status) != "finished" ]]
   do
     echo "-------Follower node, waiting for leader to finish setup-------"
     sleep 10
