@@ -47,8 +47,6 @@ etcd-set /images/mesos-slave  			"index.docker.io/mesosphere/mesos-slave:0.27.0-
 ######################
 
 etcd-set /bootstrap.service/capcom              true
-
-etcdctl setdir capcom
 etcd-set /capcom/config/applications            '[]'
 etcd-set /capcom/config/host                    127.0.0.1
 etcd-set /capcom/config/db-path                 ./capcom.db
@@ -71,7 +69,6 @@ etcd-set /capcom/config/ssl-cert-location       ""
 ######################
 
 etcd-set /bootstrap.service/flight-director true
-etcdctl setdir flight-director
 etcd-set /flight-director/config/api-server-port 2001
 etcd-set /flight-director/config/chronos-master "$FLIGHT_DIRECTOR_CHRONOS_ENDPOINT"
 etcd-set /flight-director/config/db-name "$FLIGHT_DIRECTOR_DB_NAME"
@@ -100,7 +97,6 @@ etcd-set /flight-director/config/authorizer-type airlock
 ######################
 
 etcd-set /bootstrap.service/zookeeper true
-etcdctl setdir zookeeper
 
 etcd-set /zookeeper/config/exhibitor/s3-prefix 	"zk"
 etcd-set /zookeeper/config/exhibitor/s3-bucket 	$EXHIBITOR_S3BUCKET
