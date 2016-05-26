@@ -58,13 +58,9 @@ function follower-setup() {
 }
 
 # Check the bootstrap process to see if this node should run the leader scripts
-BOOTSTRAP_LEADER_STATUS=$(etcdctl get /bootstrap.service/leader-bootstrap-status)
+etcdctl get /bootstrap.service/leader-bootstrap-status
 
-if [[ $? = 0 && \
-      "$BOOTSTRAP_LEADER_STATUS" != "started" && \
-      "$BOOTSTRAP_LEADER_STATUS" != "finished" && \
-      "$NODE_ROLE" = "control" ]]; then
-
+if [[ $? != 0 && "$NODE_ROLE" = "control" ]]; then
   # The election process follows the following algorithm:
   # 1. A list of all cluster members is obtained
   # 2. IP addresses of all members are filtered and sorted
