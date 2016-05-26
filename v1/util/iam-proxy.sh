@@ -1,17 +1,19 @@
-#!/bin/bash -x
+#!/usr/bin/bash -x
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# TODO: possibly add a flag (NOT in etcd) so this doesn't run twice on the same machine
 
 source /etc/environment
-source $DIR/../setup/helpers.sh
 
 echo "-------Beginning Worker IAM Proxy setup-------"
-
-SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ "${NODE_ROLE}" != "worker" ]; then
     exit 0
 fi
+
+SCRIPTDIR=$1
+VERSION=$2
+
+source ${SCRIPTDIR}/${VERSION}/setup/helpers.sh
 
 docker pull "index.docker.io/behance/iam-docker:latest"
 
@@ -25,11 +27,8 @@ export INTERFACE="docker0"
 
 sudo iptables -t nat -I PREROUTING -p tcp -d 169.254.169.254 --dport 80 -j DNAT --to-destination "$GATEWAY":8080 -i "$INTERFACE"
 
-submit-fleet-unit "${SCRIPTDIR}/../util-units/iam-proxy.service"
+submit-fleet-unit "${SCRIPTDIR}/${VERSION}/util-units/iam-proxy.service"
 start-fleet-unit "iam-proxy.service"
-
-# sudo cp "${SCRIPTDIR}/../util-units/iam-proxy.service" /etc/systemd/system/
-# sudo systemctl start iam-proxy.service
 
 # Wait until service is active
 until [ "`/usr/bin/docker inspect -f {{.State.Running}} iam-proxy`" == "true" ]; do

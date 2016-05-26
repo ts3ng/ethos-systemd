@@ -14,4 +14,3 @@ ExecStart=/usr/bin/sudo bash /home/core/ethos-systemd/v1/util/docker-cleanup.sh
 [X-Fleet]
 Global=true
 MachineMetadata=role=worker
-MachineMetadata=role=it-hybrid

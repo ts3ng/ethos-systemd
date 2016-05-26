@@ -1,7 +1,7 @@
-#!/bin/bash -x
+#!/usr/bin/bash -x
 
 # NOTE: this needs to be run with sudo privileges
-# $1 must be the SCRIPTDIR
+# $1 must be the SCRIPTDIR; $2 must be the ethos-systemd version
 
 echo "-------Control node found, setting up etcd peers-------"
 
@@ -21,10 +21,12 @@ chmod 0644 $DROPIN_FILE
 systemctl daemon-reload
 
 SCRIPTDIR=$1
-cp "${SCRIPTDIR}/v3/util-units/etcd-peers.service" /etc/systemd/system/
+VERSION=$2
+cp "${SCRIPTDIR}/${VERSION}/util-units/etcd-peers.service" /etc/systemd/system/
 systemctl start etcd-peers
 
 echo "-------Waiting for etcd2 to start-------"
+# TODO: add a check that compares number of cluster nodes to the size of the ASG and waits
 while etcdctl cluster-health|grep unhealthy
 do
   sleep 8

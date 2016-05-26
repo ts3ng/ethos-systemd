@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/usr/bin/bash -x
 
 # NOTE: this script will need to be sudo'ed for access to /var/lib/docker
 

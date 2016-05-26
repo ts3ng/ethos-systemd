@@ -1,11 +1,16 @@
 #!/usr/bin/bash -x
 
 HOMEDIR=$(eval echo "~`whoami`")
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 OWNER=$(whoami)
 
 source /etc/environment
+source $DIR/../helpers.sh
 
 echo "-------Beginning local credentials setup-------"
+
+# Get the docker config from etcd
+DOCKERCFG_CONTENTS=$(etcd-get /docker/config/dockercfg)
 
 echo "$DOCKERCFG_CONTENTS" > /home/${OWNER}/.dockercfg
 sudo chown -R ${OWNER}:${OWNER} /home/${OWNER}/.dockercfg

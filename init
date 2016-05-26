@@ -3,7 +3,7 @@
 # BEGINNING BOOTSTRAP SCRIPT
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOMEDIR=$(eval echo "~`whoami`")
-VERSION="v4"
+VERSION="v1"
 source /etc/environment || :
 source $SCRIPTDIR/$VERSION/setup/helpers.sh
 
@@ -11,12 +11,12 @@ echo "-------Beginning Bootstrap Script: $VERSION-------"
 
 # Control tier - must form an etcd2 cluster first
 if [[ "$NODE_ROLE" = "control" ]]; then
-  sudo ${SCRIPTDIR}/$VERSION/util/etcd2-setup.sh $SCRIPTDIR
+  sudo ${SCRIPTDIR}/$VERSION/util/etcd2-setup.sh $SCRIPTDIR $VERSION
 fi
 
 # Worker tier - must run the IAM proxy setup before any other containers
 if [[ "$NODE_ROLE" = "worker" && -f ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh ]]; then
-  sudo ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh $SCRIPTDIR
+  sudo ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh $SCRIPTDIR $VERSION
 fi
 
 # TODO: submit some units here (like SSH or OS update)? maybe not - etcd isnt populated yet
@@ -24,22 +24,25 @@ fi
 function leader-setup() {
   echo "-------Leader node, beginning leader setup-------"
 
+  etcd-set /bootstrap.service/leader-bootstrap-status started
+
   for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
   do
       sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
   done
 
-  echo "-------Leader node, writing completion flag to etcd-------"
+  echo "-------Leader node, writing finished flag to etcd-------"
 
-  etcdctl set /bootstrap.service/leader-bootstrapped true
+  etcd-set /bootstrap.service/leader-bootstrap-status finished
 
   echo "-------Leader node, leader is finished, continuing bootstrap-------"
 }
 
 function follower-setup() {
   # Wait until etcd bootstrap value is set
+  # This ensures that the etcd cluster is healthy and replicated on workers and proxy
   # TODO: fix syntax
-  while etcdctl get /bootstrap.service/leader-bootstrapped != "true"
+  while etcdctl get /bootstrap.service/leader-bootstrap-status != "finished"
   do
     echo "-------Follower node, waiting for leader to finish setup-------"
     sleep 10
@@ -48,23 +51,34 @@ function follower-setup() {
   echo "-------Follower node, leader is finished, continuing bootstrap-------"
 }
 
-# SETUP profile.d
+# Setup profile.d
 sudo mkdir /etc/profile.d || :
 sudo cp ${SCRIPTDIR}/$VERSION/profile.d/* /etc/profile.d/. 2>/dev/null || :
 sudo cp --dereference ${SCRIPTDIR}/$VERSION/profile.d/${NODE_ROLE}/* /etc/profile.d/.
 
-# If the bootstrap process is already complete, just run local
-# TODO: possibly add an etcd bootstrap value for "leader-started" to prevent an ASG race condition
-if [[ etcdctl get /bootstrap.service/leader-bootstrapped != "true" && "$NODE_ROLE" = "control" ]]; then
+# Check the bootstrap process to see if this node should run the leader scripts
+if [[ etcdctl get /bootstrap.service/leader-bootstrap-status != "started" && \
+      etcdctl get /bootstrap.service/leader-bootstrap-status != "finished" && \
+      "$NODE_ROLE" = "control" ]]; then
+
+  # The election process follows the following algorithm:
+  # 1. A list of all cluster members is obtained
+  # 2. IP addresses of all members are filtered and sorted
+  # 3. The first IP in the sorted list becomes the leader
+  # 4. If the node's local IP matches, it begins running the leader scripts
+  # 5. Others continue to wait for it to complete
   LEADER_IP=$(etcdctl member list | awk '{print $4}' | cut -d':' -f 2 | cut -c3- | sort | head -n1)
   LOCAL_IP=$(curl -sS http://169.254.169.254/latest/meta-data/local-ipv4)
 
   if [[ "$LEADER_IP" = "$LOCAL_IP" ]]; then
     leader-setup
-  else
-    follower-setup
   fi
 fi
+
+# TODO: what happens if the elected leader dies?
+
+# Run the follower setup on all nodes
+follower-setup
 
 # Run the common scripts on all instances
 for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
@@ -72,7 +86,8 @@ do
     sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
 done
 
-# TODO: This does not use the helper because it sometimes expects a 4 response
+# This does not use the helper because it sometimes expects a 4 response
+# TODO: do we need this? @i-kran-noodles
 etcdctl get /environment/SCRIPTS-FORK
 if [[ $? = 4 ]]; then
   # 4 == 404 - key not found
@@ -109,6 +124,7 @@ done
 echo "-------Done node-specific fleet submissions-------"
 
 # GENERAL-PURPOSE UNITS
+# TODO: can we only submit these on the leader?
 echo "-------Beginning general purpose fleet submissions-------"
 for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
 do
@@ -116,3 +132,13 @@ do
     start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
 done
 echo "-------Done general purpose fleet submissions-------"
+
+# TODO:
+# In util-units/update-scripts.service, the entire folder is deleted and re-cloned. Since leader already has "bootstrap finished" in etcd, it wont run again
+# In util-units/update-scripts.service, the setup-credentials.sh file no longer exists
+# In control-jenkins.service, -e HOST_SCRIPT_DIR=/home/core/ethos-systemd/v1 \ - does Jenkins rely on scripts that are now missing
+# it-hybrid has been removed and will need to be re-added
+# Should we manually submit the core-os update service before everything else runs?
+# Does the log rotator need to start early on
+# Can we use an Environment="IMAGE=etcdctl get /images/gcron-logrotate" in the log rotate service? Not if we submit it early
+# Use /images/<> declarations in the /opt services 

@@ -1,4 +1,4 @@
-#!/usr/bin/bash -xe
+#!/usr/bin/bash -x
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -7,6 +7,7 @@ source $DIR/../helpers.sh
 
 echo "-------Leader node, beginning writing custom values to etcd-------"
 
+# TODO: will this etcd-get function work in this context?
 IMAGE=$(etcd-get /images/secrets-downloader)
 
 docker pull $IMAGE

@@ -10,7 +10,7 @@ Type=oneshot
 User=core
 RemainAfterExit=yes
 
-ExecStart=/usr/bin/bash -x /home/core/ethos-systemd/v3/util/exhibitor-health-poll.sh
+ExecStart=/usr/bin/bash -x /home/core/ethos-systemd/v1/util/exhibitor-health-poll.sh
 
 [Install]
 WantedBy=multi-user.target
