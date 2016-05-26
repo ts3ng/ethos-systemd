@@ -1,12 +1,16 @@
 #!/usr/bin/bash -x
 
+# Source the etcd
+if [ -f /etc/profile.d/etcdctl.sh ]; then
+  source /etc/profile.d/etcdctl.sh;
+fi
+
 # Handle retrying of all etcd sets and gets
 function etcd-set() {
     etcdctl set $@
     while [ $? != 0 ]; do sleep 1; etcdctl set $@; done
 }
 
-# TODO: check this syntax
 function etcd-get() {
     etcdctl get $@
     while [ $? != 0 ]; do sleep 1; etcdctl get $@; done

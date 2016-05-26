@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source /etc/environment
-source $DIR/../helpers.sh
+source $DIR/../../lib/helpers.sh
 
 echo "-------Beginning download of Docker images-------"
 

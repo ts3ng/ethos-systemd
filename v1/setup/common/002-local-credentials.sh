@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 OWNER=$(whoami)
 
 source /etc/environment
-source $DIR/../helpers.sh
+source $DIR/../../lib/helpers.sh
 
 echo "-------Beginning local credentials setup-------"
 

@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-source $DIR/../helpers.sh
+source $DIR/../../lib/helpers.sh
 
 echo "-------Leader node, beginning writing environment variables to etcd-------"
 

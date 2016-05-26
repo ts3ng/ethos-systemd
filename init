@@ -5,9 +5,15 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOMEDIR=$(eval echo "~`whoami`")
 VERSION="v1"
 source /etc/environment || :
-source $SCRIPTDIR/$VERSION/setup/helpers.sh
 
 echo "-------Beginning Bootstrap Script: $VERSION-------"
+
+# Setup profile.d
+sudo mkdir /etc/profile.d || :
+sudo cp ${SCRIPTDIR}/$VERSION/profile.d/* /etc/profile.d/. 2>/dev/null || :
+sudo cp --dereference ${SCRIPTDIR}/$VERSION/profile.d/${NODE_ROLE}/* /etc/profile.d/.
+
+source $SCRIPTDIR/$VERSION/lib/helpers.sh
 
 # Control tier - must form an etcd2 cluster first
 if [[ "$NODE_ROLE" = "control" ]]; then
@@ -51,11 +57,6 @@ function follower-setup() {
   echo "-------Follower node, leader is finished, continuing bootstrap-------"
 }
 
-# Setup profile.d
-sudo mkdir /etc/profile.d || :
-sudo cp ${SCRIPTDIR}/$VERSION/profile.d/* /etc/profile.d/. 2>/dev/null || :
-sudo cp --dereference ${SCRIPTDIR}/$VERSION/profile.d/${NODE_ROLE}/* /etc/profile.d/.
-
 # Check the bootstrap process to see if this node should run the leader scripts
 if [[ etcdctl get /bootstrap.service/leader-bootstrap-status != "started" && \
       etcdctl get /bootstrap.service/leader-bootstrap-status != "finished" && \
@@ -87,7 +88,6 @@ do
 done
 
 # This does not use the helper because it sometimes expects a 4 response
-# TODO: do we need this? @i-kran-noodles
 etcdctl get /environment/SCRIPTS-FORK
 if [[ $? = 4 ]]; then
   # 4 == 404 - key not found

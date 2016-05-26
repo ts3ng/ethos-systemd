@@ -26,8 +26,8 @@ cp "${SCRIPTDIR}/${VERSION}/util-units/etcd-peers.service" /etc/systemd/system/
 systemctl start etcd-peers
 
 echo "-------Waiting for etcd2 to start-------"
-# TODO: add a check that compares number of cluster nodes to the size of the ASG and waits
-while etcdctl cluster-health|grep unhealthy
+
+while [[ $(etcdctl cluster-health|grep unhealthy) || $(etcdctl member list | wc -l) -lt $CONTROL_CLUSTER_SIZE ]]
 do
   sleep 8
 done

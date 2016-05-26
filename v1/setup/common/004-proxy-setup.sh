@@ -7,7 +7,7 @@ if [ "$NODE_ROLE" != "proxy" ]; then
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $DIR/../helpers.sh
+source $DIR/../../lib/helpers.sh
 
 echo "-------Beginning proxy setup-------"
 

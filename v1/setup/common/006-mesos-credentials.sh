@@ -11,7 +11,7 @@ echo "-------Beginning Mesos credentials setup-------"
 source /etc/profile.d/etcdctl.sh || :
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $DIR/../helpers.sh
+source $DIR/../../lib/helpers.sh
 
 CREDS="$(etcd-get /mesos/config/username) $(etcd-get /mesos/config/password)"
 

@@ -13,7 +13,7 @@ fi
 SCRIPTDIR=$1
 VERSION=$2
 
-source ${SCRIPTDIR}/${VERSION}/setup/helpers.sh
+source ${SCRIPTDIR}/${VERSION}/lib/helpers.sh
 
 docker pull "index.docker.io/behance/iam-docker:latest"
 
