@@ -1,6 +1,6 @@
 #!/usr/bin/bash -x
 
-while [ "`systemctl is-active zk-exhibitor@*`" != "active" ]; do sleep 2; done
+while [ "`systemctl is-active zk-exhibitor@*`" != "active" ]; do sleep 5; done
 
 ZK_AUTH="`etcdctl get /zookeeper/config/username`:`etcdctl get /zookeeper/config/password`"
 # array of objects, each representing a ZK node

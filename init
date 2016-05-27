@@ -3,6 +3,7 @@
 # BEGINNING BOOTSTRAP SCRIPT
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 VERSION="v1"
+LEADER="false"
 source /etc/environment || :
 
 echo "-------Beginning Bootstrap Script: $VERSION-------"
@@ -29,12 +30,24 @@ fi
 function leader-setup() {
   echo "-------Leader node, beginning leader setup-------"
 
+  LEADER="true"
+
   etcd-set /bootstrap.service/leader-status started
 
   for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
   do
       sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
   done
+
+  # This does not use the helper because it sometimes expects a 4 response
+  etcdctl get /environment/SCRIPTS-FORK
+  if [[ $? = 4 ]]; then
+    # 4 == 404 - key not found
+    # case where a node is joining a pre-existing cluster
+    SCRIPTS_REV=$(cd $SCRIPTDIR && git rev-parse HEAD)
+    etcd-set /environment/SCRIPTS-FORK adobe-platform
+    etcd-set /environment/SCRIPTS-SHA  $SCRIPTS_REV
+  fi
 
   echo "-------Leader node, writing finished flag to etcd-------"
 
@@ -46,14 +59,19 @@ function leader-setup() {
 function follower-setup() {
   # Wait until etcd bootstrap value is set
   # This ensures that the etcd cluster is healthy and replicated on workers and proxy
-  # TODO: fix syntax
   while [[ $(etcdctl get /bootstrap.service/leader-status) != "finished" ]]
   do
-    echo "-------Follower node, waiting for leader to finish setup-------"
+    echo "-------Follower node, waiting for leader to finish script setup-------"
     sleep 10
   done
 
   echo "-------Follower node, leader is finished, continuing bootstrap-------"
+
+  # Run the common scripts on all instances
+  for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
+  do
+      sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
+  done
 }
 
 # Check the bootstrap process to see if this node should run the leader scripts
@@ -76,62 +94,62 @@ fi
 
 # TODO: what happens if the elected leader dies?
 
-# Run the follower setup on all nodes
+# Run the follower setup on all nodes (including leader)
 follower-setup
-
-# Run the common scripts on all instances
-for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
-do
-    sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
-done
 
 # TODO: add a pause to wait for fleet to become healthy
 
-# This does not use the helper because it sometimes expects a 4 response
-etcdctl get /environment/SCRIPTS-FORK
-if [[ $? = 4 ]]; then
-  # 4 == 404 - key not found
-  # case where a node is joining a pre-existing cluster
-  SCRIPTS_REV=$(cd $SCRIPTDIR && git rev-parse HEAD)
-  etcd-set /environment/SCRIPTS-FORK adobe-platform
-  etcd-set /environment/SCRIPTS-SHA  $SCRIPTS_REV
+function optional-units() {
+  # start services specified in $(etcdctl get /environment/services)
+  # mapped to the /opt directory of these scripts
+  echo "-------Beginning optional fleet submissions-------"
+
+  for service in $(etcd-get /environment/services)
+  do
+      servicedir=${SCRIPTDIR}/${VERSION}/opt/${service}
+      if [[ ! -d $servicedir ]]; then
+          continue
+      fi
+      for unit in $(ls $servicedir|grep -e '.service$\|.timer$')
+      do
+          submit-fleet-unit $servicedir/$unit
+          start-fleet-unit $unit
+      done
+  done
+  echo "-------Done optional fleet submissions-------"
+}
+
+function specific-units() {
+  # TODO: just submit all of these, for every tier, on the leader
+  echo "-------Beginning node-specific fleet submissions-------"
+  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}|grep -e '.service$')
+  do
+      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
+      start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
+  done
+  echo "-------Done node-specific fleet submissions-------"
+}
+
+function general-units() {
+  echo "-------Beginning general purpose fleet submissions-------"
+  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
+  do
+      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+      start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+  done
+  echo "-------Done general purpose fleet submissions-------"
+}
+
+# OPTIONAL FLEET UNITS
+if [[ "$LEADER" = "true" ]]; then
+  optional-units
+  specific-units
+  general-units
 fi
 
-# start services specified in $(etcdctl get /environment/services)
-# mapped to the /opt directory of these scripts
-echo "-------Beginning optional fleet submissions-------"
-for service in $(etcd-get /environment/services)
-do
-    servicedir=${SCRIPTDIR}/${VERSION}/opt/${service}
-    if [[ ! -d $servicedir ]]; then
-        continue
-    fi
-    for unit in $(ls $servicedir|grep -e '.service$\|.timer$')
-    do
-        submit-fleet-unit $servicedir/$unit
-        start-fleet-unit $unit
-    done
-done
-echo "-------Done optional fleet submissions-------"
-
-# FLEET UNITS SPECIFIC TO THIS NODE
-echo "-------Beginning node-specific fleet submissions-------"
-for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}|grep -e '.service$')
-do
-    submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
-    start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
-done
-echo "-------Done node-specific fleet submissions-------"
-
-# GENERAL-PURPOSE UNITS
-# TODO: can we only submit these on the leader?
-echo "-------Beginning general purpose fleet submissions-------"
-for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
-do
-    submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
-    start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
-done
-echo "-------Done general purpose fleet submissions-------"
+if [[ "$NODE_ROLE" != "control" ]]; then
+  specific-units
+fi
 
 # TODO:
 # In util-units/update-scripts.service, the entire folder is deleted and re-cloned. Since leader already has "bootstrap finished" in etcd, it wont run again
