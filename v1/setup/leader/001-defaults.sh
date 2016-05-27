@@ -11,6 +11,8 @@ echo "-------Leader node, beginning writing all default values to etcd-------"
 #     IMAGES
 ######################
 
+# TODO: this overloads the machine
+
 etcd-set /bootstrap.service/images-base-bootstrapped true
 
 etcd-set /images/gocron-logrotate     	"index.docker.io/behance/docker-gocron-logrotate"
