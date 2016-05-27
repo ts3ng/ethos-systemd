@@ -2,7 +2,6 @@
 
 # BEGINNING BOOTSTRAP SCRIPT
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HOMEDIR=$(eval echo "~`whoami`")
 VERSION="v1"
 source /etc/environment || :
 
@@ -34,7 +33,7 @@ function leader-setup() {
 
   for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
   do
-      sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
+      ${SCRIPTDIR}/$VERSION/setup/leader/${script}
   done
 
   echo "-------Leader node, writing finished flag to etcd-------"
@@ -83,7 +82,7 @@ follower-setup
 # Run the common scripts on all instances
 for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
 do
-    sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
+    ${SCRIPTDIR}/$VERSION/setup/common/${script}
 done
 
 # This does not use the helper because it sometimes expects a 4 response
@@ -107,7 +106,7 @@ do
     fi
     for unit in $(ls $servicedir|grep -e '.service$\|.timer$')
     do
-        submit-fleet-unit submit $servicedir/$unit
+        submit-fleet-unit $servicedir/$unit
         start-fleet-unit $unit
     done
 done
