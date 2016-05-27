@@ -5,6 +5,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source /etc/environment
 source $DIR/../../lib/helpers.sh
 
+# Since Docker >=1.9, no longer need to pre-pull images
+exit 0
+
 echo "-------Beginning download of Docker images-------"
 
 docker pull $(etcd-get /images/gocron-logrotate)
