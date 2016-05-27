@@ -33,7 +33,7 @@ function leader-setup() {
 
   for script in $(ls ${SCRIPTDIR}/$VERSION/setup/leader|grep -e '.sh$')
   do
-      ${SCRIPTDIR}/$VERSION/setup/leader/${script}
+      sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
   done
 
   echo "-------Leader node, writing finished flag to etcd-------"
@@ -82,8 +82,10 @@ follower-setup
 # Run the common scripts on all instances
 for script in $(ls ${SCRIPTDIR}/$VERSION/setup/common|grep -e '.sh$')
 do
-    ${SCRIPTDIR}/$VERSION/setup/common/${script}
+    sudo ${SCRIPTDIR}/$VERSION/setup/common/${script}
 done
+
+# TODO: add a pause to wait for fleet to become healthy
 
 # This does not use the helper because it sometimes expects a 4 response
 etcdctl get /environment/SCRIPTS-FORK
