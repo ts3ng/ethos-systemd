@@ -24,5 +24,5 @@ function submit-fleet-unit() {
 
 function start-fleet-unit() {
     sudo fleetctl start "$@"
-    while [ $? != 0 ]; do sleep 1; sudo fleetctl submit $@; done
+    while [ $? != 0 ]; do sleep 1; sudo fleetctl start $@; done
 }
