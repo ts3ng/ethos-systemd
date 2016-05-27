@@ -17,9 +17,11 @@ fi
 REGION=${AZ::-1}
 
 METADATA="FLEET_METADATA=region=${REGION},az=${AZ},role=${NODE_ROLE},ip=${COREOS_PRIVATE_IPV4}"
-echo -e "[Service]\nEnvironment='${METADATA}'" > $CONF_DIR/21-aws.conf
+sudo echo -e "[Service]\nEnvironment='${METADATA}'" > $CONF_DIR/21-aws.conf
 
 sudo systemctl daemon-reload
 sudo systemctl restart fleet
+
+sleep 5
 
 echo "-------Done Fleet config setup-------"
