@@ -25,8 +25,6 @@ if [[ "$NODE_ROLE" = "worker" && -f ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh ]]; 
   sudo ${SCRIPTDIR}/$VERSION/util/iam-proxy.sh $SCRIPTDIR $VERSION
 fi
 
-# TODO: submit some units here (like SSH or OS update)? maybe not - etcd isnt populated yet
-
 function leader-setup() {
   echo "-------Leader node, beginning leader setup-------"
 
@@ -38,16 +36,6 @@ function leader-setup() {
   do
       sudo ${SCRIPTDIR}/$VERSION/setup/leader/${script}
   done
-
-  # This does not use the helper because it sometimes expects a 4 response
-  etcdctl get /environment/SCRIPTS-FORK
-  if [[ $? = 4 ]]; then
-    # 4 == 404 - key not found
-    # case where a node is joining a pre-existing cluster
-    SCRIPTS_REV=$(cd $SCRIPTDIR && git rev-parse HEAD)
-    etcd-set /environment/SCRIPTS-FORK adobe-platform
-    etcd-set /environment/SCRIPTS-SHA  $SCRIPTS_REV
-  fi
 
   echo "-------Leader node, writing finished flag to etcd-------"
 
@@ -93,11 +81,22 @@ if [[ $? != 0 && "$NODE_ROLE" = "control" ]]; then
 fi
 
 # TODO: what happens if the elected leader dies?
+# TODO: what happens during a reboot?
 
 # Run the follower setup on all nodes (including leader)
 follower-setup
 
 # TODO: add a pause to wait for fleet to become healthy
+
+function general-units() {
+  echo "-------Beginning general purpose fleet submissions-------"
+  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
+  do
+      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+      start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+  done
+  echo "-------Done general purpose fleet submissions-------"
+}
 
 function optional-units() {
   # start services specified in $(etcdctl get /environment/services)
@@ -121,33 +120,23 @@ function optional-units() {
 
 function specific-units() {
   # TODO: just submit all of these, for every tier, on the leader
-  echo "-------Beginning node-specific: $1 fleet submissions-------"
-  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/$1|grep -e '.service$')
+  echo "-------Beginning node-specific fleet submissions-------"
+  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}|grep -e '.service$')
   do
-      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/$1/${unit}
+      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
       start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
   done
-  echo "-------Done node-specific: $1 fleet submissions-------"
-}
-
-function general-units() {
-  echo "-------Beginning general purpose fleet submissions-------"
-  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
-  do
-      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
-      start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
-  done
-  echo "-------Done general purpose fleet submissions-------"
+  echo "-------Done node-specific fleet submissions-------"
 }
 
 if [[ "$LEADER" = "true" ]]; then
   optional-units
-  specific-units control
-  specific-units worker
-  specific-units proxy
+  specific-units
   general-units
+fi
 
-  echo "-------Done leader submissions-------"
+if [[ "$NODE_ROLE" != "control" ]]; then
+  specific-units
 fi
 
 echo "-------Done bootstrap script-------"
