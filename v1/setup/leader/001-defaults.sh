@@ -38,6 +38,7 @@ etcd-set /images/capcom       			"index.docker.io/behance/capcom:latest"
 etcd-set /images/capcom2      			"index.docker.io/behance/capcom:latest"
 etcd-set /images/proxy        			"index.docker.io/nginx:1.9.5"
 etcd-set /images/proxy-setup			"index.docker.io/behance/mesos-proxy-setup:latest"
+etcd-set /images/control-proxy   		"index.docker.io/behance/apigateway:v0.0.1"
 
 etcd-set /bootstrap.service/images-worker-bootstrapped true
 
