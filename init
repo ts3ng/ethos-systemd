@@ -131,13 +131,10 @@ function specific-units() {
 
 if [[ "$LEADER" = "true" ]]; then
   optional-units
-  specific-units
   general-units
 fi
 
-if [[ "$NODE_ROLE" != "control" ]]; then
-  specific-units
-fi
+specific-units
 
 echo "-------Done bootstrap script-------"
 
