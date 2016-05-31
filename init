@@ -121,13 +121,13 @@ function optional-units() {
 
 function specific-units() {
   # TODO: just submit all of these, for every tier, on the leader
-  echo "-------Beginning node-specific fleet submissions-------"
-  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}|grep -e '.service$')
+  echo "-------Beginning node-specific: $1 fleet submissions-------"
+  for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet-local/$1|grep -e '.service$')
   do
-      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
+      submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/$1/${unit}
       start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
   done
-  echo "-------Done node-specific fleet submissions-------"
+  echo "-------Done node-specific: $1 fleet submissions-------"
 }
 
 function general-units() {
@@ -140,16 +140,17 @@ function general-units() {
   echo "-------Done general purpose fleet submissions-------"
 }
 
-# OPTIONAL FLEET UNITS
 if [[ "$LEADER" = "true" ]]; then
   optional-units
-  specific-units
+  specific-units control
+  specific-units worker
+  specific-units proxy
   general-units
+
+  echo "-------Done leader submissions-------"
 fi
 
-if [[ "$NODE_ROLE" != "control" ]]; then
-  specific-units
-fi
+echo "-------Done bootstrap script-------"
 
 # TODO:
 # In util-units/update-scripts.service, the entire folder is deleted and re-cloned. Since leader already has "bootstrap finished" in etcd, it wont run again
