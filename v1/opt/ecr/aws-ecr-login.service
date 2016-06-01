@@ -10,7 +10,7 @@ Type=oneshot
 Environment="IMAGE=etcdctl get /images/ecr-login"
 EnvironmentFile=/etc/environment
 User=core
-ExecStartPre=/usr/bin/docker pull $($IMAGE)
+ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill ecr-login
 ExecStartPre=-/usr/bin/docker rm -f ecr-login
 # ecr-login fetches ECR creds and formats them correctly for .dockercfg
