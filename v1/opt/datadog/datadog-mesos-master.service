@@ -2,16 +2,17 @@
 # make sure the etcd /datadog/config/api-key is set!
 [Unit]
 Description=Datadog Agent for Mesos master
-After=docker.service
+After=docker.service bootstrap.service
 
 [Service]
 # CONTROL_ELB should be set in etcd
 # It should be run on all mesos master nodes
 # Look at adobeplatform/docker-dd-agent-mesos-master for what ports those 3 should be running on
+Environment="IMAGE=etcdctl get /images/dd-agent-mesos-master"
 User=core
 Restart=always
 TimeoutStartSec=0
-ExecStartPre=/usr/bin/docker pull index.docker.io/adobeplatform/docker-dd-agent-mesos-master:latest
+ExecStartPre=/usr/bin/docker pull $($IMAGE)
 ExecStartPre=-/usr/bin/docker kill dd-agent-mesos-master
 ExecStartPre=-/usr/bin/docker rm -f dd-agent-mesos-master
 ExecStart=/usr/bin/bash -c \
@@ -23,7 +24,7 @@ ExecStart=/usr/bin/bash -c \
 -e HOST_IP=`hostname -i` \
 -e MARATHON_USERNAME=`etcdctl get /marathon/config/username` \
 -e MARATHON_PASSWORD=`etcdctl get /marathon/config/password` \
-adobeplatform/docker-dd-agent-mesos-master"
+$($IMAGE)"
 ExecStop=/usr/bin/docker stop dd-agent-mesos-master
 
 [X-Fleet]
