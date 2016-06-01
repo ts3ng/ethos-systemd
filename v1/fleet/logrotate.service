@@ -13,7 +13,8 @@ ExecStartPre=/usr/bin/systemctl is-active bootstrap
 ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill logrotate
 ExecStartPre=-/usr/bin/docker rm -f logrotate
-ExecStart=/usr/bin/sudo /usr/bin/docker run --name logrotate -v /var/lib/docker:/var/lib/docker $($IMAGE)
+# TODO: convert to $($IMAGE) format
+ExecStart=/usr/bin/sudo /usr/bin/docker run --name logrotate -v /var/lib/docker:/var/lib/docker behance/docker-gocron-logrotate
 ExecStop=/usr/bin/docker stop logrotate
 
 [X-Fleet]
