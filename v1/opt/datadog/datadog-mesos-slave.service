@@ -2,16 +2,17 @@
 # make sure the etcd /datadog/config/api-key is set!
 [Unit]
 Description=Datadog Agent for Mesos slave
-After=docker.service
+After=docker.service bootstrap.service
 
 [Service]
 # CONTROL_ELB should be set in etcd
 # It should be run on all mesos slave nodes (worker tier nodes)
 # Look at adobeplatform/docker-dd-agent-mesos-slave for what ports those 3 should be running on
+Environment="IMAGE=etcdctl get /images/dd-agent-mesos-slave"
 User=core
 Restart=always
 TimeoutStartSec=0
-ExecStartPre=/usr/bin/docker pull index.docker.io/adobeplatform/docker-dd-agent-mesos-slave:latest
+ExecStartPre=/usr/bin/docker pull $($IMAGE)
 ExecStartPre=-/usr/bin/docker kill dd-agent-mesos-slave
 ExecStartPre=-/usr/bin/docker rm -f dd-agent-mesos-slave
 ExecStart=/usr/bin/bash -c \
@@ -21,7 +22,7 @@ ExecStart=/usr/bin/bash -c \
 -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
 -e API_KEY=`etcdctl get /datadog/config/api-key` \
 -e HOST_IP=`hostname -i` \
-adobeplatform/docker-dd-agent-mesos-slave"
+$($IMAGE)"
 ExecStop=/usr/bin/docker stop dd-agent-mesos-slave
 
 [X-Fleet]

@@ -1,15 +1,16 @@
 [Unit]
 Description=Amazon ECR Login
-After=docker.service
+After=docker.service bootstrap.service
 Requires=docker.service
 Requires=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
+Environment="IMAGE=etcdctl get /images/ecr-login"
 EnvironmentFile=/etc/environment
 User=core
-ExecStartPre=/usr/bin/docker pull index.docker.io/behance/ecr-login:latest
+ExecStartPre=/usr/bin/docker pull $($IMAGE)
 ExecStartPre=-/usr/bin/docker kill ecr-login
 ExecStartPre=-/usr/bin/docker rm -f ecr-login
 # ecr-login fetches ECR creds and formats them correctly for .dockercfg
@@ -22,7 +23,7 @@ ExecStart=/bin/bash -c \
     -e "TEMPLATE=templates/dockercfg.tmpl" \
     -e "AWS_REGION=`etcdctl get /ECR/config/region`" \
     -e "REGISTRIES=`etcdctl get /ECR/config/registry-account`" \
-    behance/ecr-login >/home/core/.dockercfg; \
+    $($IMAGE) >/home/core/.dockercfg; \
     fi'
 ExecStop=/usr/bin/docker stop ecr-login
 

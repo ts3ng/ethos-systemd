@@ -4,12 +4,13 @@ After=docker.service bootstrap.service
 
 [Service]
 EnvironmentFile=/etc/environment
+Environment="IMAGE=etcdctl get /images/sumologic"
 Environment="IP=curl -sS http://169.254.169.254/latest/meta-data/local-ipv4"
 User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
-ExecStartPre=/usr/bin/docker pull index.docker.io/behance/docker-sumologic
+ExecStartPre=/usr/bin/docker pull $($IMAGE)
 ExecStartPre=-/usr/bin/docker kill sumologic-control
 ExecStartPre=-/usr/bin/docker rm -f sumologic-control
 ExecStart=/usr/bin/bash -c \
@@ -23,7 +24,7 @@ ExecStart=/usr/bin/bash -c \
     -e SUMO_HOSTNAME=$($IP) \
     -e SUMO_ACCESS_ID=`etcdctl get /sumologic/config/access-id` \
     -e SUMO_ACCESS_KEY=`etcdctl get /sumologic/config/access-key` \
-    behance/docker-sumologic"
+    $($IMAGE)"
 ExecStop=/usr/bin/docker stop sumologic-control
 
 [X-Fleet]
