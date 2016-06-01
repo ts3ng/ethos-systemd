@@ -23,7 +23,7 @@ ExecStart=/bin/bash -c \
     -e "TEMPLATE=templates/dockercfg.tmpl" \
     -e "AWS_REGION=`etcdctl get /ECR/config/region`" \
     -e "REGISTRIES=`etcdctl get /ECR/config/registry-account`" \
-    behance/ecr-login >/home/core/.dockercfg; \
+    $($IMAGE) >/home/core/.dockercfg; \
     fi'
 ExecStop=/usr/bin/docker stop ecr-login
 
