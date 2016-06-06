@@ -141,9 +141,8 @@ echo "-------Done bootstrap script-------"
 # TODO:
 # In util-units/update-scripts.service, the entire folder is deleted and re-cloned. Since leader already has "bootstrap finished" in etcd, it wont run again
 # In util-units/update-scripts.service, the setup-credentials.sh file no longer exists
-# In control-jenkins.service, -e HOST_SCRIPT_DIR=/home/core/ethos-systemd/v1 \ - does Jenkins rely on scripts that are now missing
-# it-hybrid has been removed and will need to be re-added
+
+
 # Should we manually submit the core-os update service before everything else runs?
 # Does the log rotator need to start early on
 # Can we use an Environment="IMAGE=etcdctl get /images/gcron-logrotate" in the log rotate service? Not if we submit it early
-# Use /images/<> declarations in the /opt services 

@@ -25,7 +25,7 @@ ExecStartPre=-/usr/bin/docker kill mesos-slave
 ExecStartPre=-/usr/bin/docker rm mesos-slave
 
 ExecStart=/usr/bin/bash -c "source /etc/profile.d/etcdctl.sh && \
-  sudo docker run \
+  sudo -E docker run \
     --name=mesos-slave \
     --net=host \
     --pid=host \

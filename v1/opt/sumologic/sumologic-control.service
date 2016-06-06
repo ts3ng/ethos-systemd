@@ -10,12 +10,12 @@ User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
-ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
+ExecStartPre=/usr/bin/bash -c "(source /etc/profile.d/etcdctl.sh || :) && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill sumologic-control
 ExecStartPre=-/usr/bin/docker rm -f sumologic-control
 ExecStart=/usr/bin/bash -c \
     "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
-    sudo /usr/bin/docker run --name sumologic-control \
+    sudo -E /usr/bin/docker run --name sumologic-control \
     --hostname=$COREOS_PRIVATE_IPV4 \
     -v /var/lib/docker/containers/:/tmp/clogs/:ro \
     -e SUMO_NAME=docker_cluster \
