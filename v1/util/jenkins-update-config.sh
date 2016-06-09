@@ -13,7 +13,7 @@ CONTROL_JENKINS_OKTA_METADATA=$(etcdctl get /jenkins/config/okta/metadata)
 CONTROL_JENKINS_ADMIN_GROUP=$(etcdctl get /jenkins/config/okta/admin-group)
 CONTROL_JENKINS_RO_GROUP=$(etcdctl get /jenkins/config/okta/read-group)
 
-if [[ -n $CONTROL_JENKINS_OKTA_METADATA ]] ; then
+if [[ -n $CONTROL_JENKINS_OKTA_METADATA && -n $CONTROL_JENKINS_ADMIN_GROUP && -n $CONTROL_JENKINS_RO_GROUP ]] ; then
   # use the secure Jenkins config
   mv -f $JENKINS_DIRECTORY/config-secure.xml $JENKINS_DIRECTORY/config.xml
 
