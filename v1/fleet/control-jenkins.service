@@ -14,6 +14,7 @@ TimeoutStartSec=0
 ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/sudo rm -rf /home/core/control-jenkins
 ExecStartPre=/usr/bin/git clone https://github.com/adobe-platform/control-jenkins.git /home/core/control-jenkins
+ExecStartPre=/home/core/ethos-systemd/v1/util/jenkins-update-config.sh /home/core/control-jenkins
 ExecStartPre=-/usr/bin/docker kill jenkins
 ExecStartPre=-/usr/bin/docker rm jenkins
 ExecStart=/usr/bin/bash -c \
