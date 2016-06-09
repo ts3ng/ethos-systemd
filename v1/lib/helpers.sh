@@ -13,7 +13,8 @@ function etcd-set() {
 
 function etcd-get() {
     etcdctl get "$@"
-    while [ $? != 0 ]; do sleep 1; etcdctl get $@; done
+    # "0" and "4" responses were successful, "4" means the key intentionally doesn't exist
+    while [[ $? != 0 && $? != 4 ]]; do sleep 1; etcdctl get $@; done
 }
 
 # Handle retrying of all fleet submits and starts

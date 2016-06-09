@@ -9,9 +9,12 @@ if [[ ! $1 ]]; then
   exit 1;
 fi
 
-CONTROL_JENKINS_OKTA_METADATA=$(etcdctl get /jenkins/config/okta/metadata)
-CONTROL_JENKINS_ADMIN_GROUP=$(etcdctl get /jenkins/config/okta/admin-group)
-CONTROL_JENKINS_RO_GROUP=$(etcdctl get /jenkins/config/okta/read-group)
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/../lib/helpers.sh
+
+CONTROL_JENKINS_OKTA_METADATA=$(etcd-get /jenkins/config/okta/metadata)
+CONTROL_JENKINS_ADMIN_GROUP=$(etcd-get /jenkins/config/okta/admin-group)
+CONTROL_JENKINS_RO_GROUP=$(etcd-get /jenkins/config/okta/read-group)
 
 if [[ -n $CONTROL_JENKINS_OKTA_METADATA && -n $CONTROL_JENKINS_ADMIN_GROUP && -n $CONTROL_JENKINS_RO_GROUP ]] ; then
   # use the secure Jenkins config
