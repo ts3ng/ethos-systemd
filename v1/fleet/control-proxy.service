@@ -19,7 +19,7 @@ ExecStart=/usr/bin/bash -c \
   "/usr/bin/docker run \
   --name control-proxy \
   -e MESOS_MASTER_HOST=http://$($INTERNAL_CONTROL_ELB):5050 \
-  -p 7070:80 \
+  -p 7070:7070 \
   $($IMAGE)"
 ExecStop=/usr/bin/docker stop control-proxy
 
