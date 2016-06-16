@@ -4,26 +4,26 @@ Requires=docker.service
 Before=journald-splunk-pipe.service
 After=docker.service bootstrap.service
 [Service]
-Environment="IMAGE=etcdctl get /images/splunk"
 EnvironmentFile=/etc/environment
+Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
 User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
-ExecStartPre=/usr/bin/bash -c \
-"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
-docker pull $($IMAGE)"
+ExecStartPre=/usr/bin/docker pull index.docker.io/adobeplatform/docker-splunk:latest
 ExecStartPre=-/usr/bin/docker kill splunk-journald
 ExecStartPre=-/usr/bin/docker rm -f splunk-journald
 ExecStart=/usr/bin/bash -c \
 "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh; fi && \
 sudo -E /usr/bin/docker run --name splunk-journald \
---hostname=${COREOS_PRIVATE_IPV4} \
+-v /opt/splunk/etc/system/local:/var/opt/splunk/etc/system/local \
+--hostname=$($INSTANCEHOSTNAME) \
+--log-opt max-size=`etcdctl get /docker/config/logs-max-size` \
+--log-opt max-file=`etcdctl get /docker/config/logs-max-file` \
 -p 1514:1514/udp \
 -e SPLUNK_START_ARGS="--accept-license" \
--e SPLUNK_FORWARD_SERVER=`etcdctl get /splunk/SPLUNK_FORWARD_SERVER` \
--e SPLUNK_ADD='udp 1514 -sourcetype journald -hostname ${COREOS_PRIVATE_IPV4} -index os -connection_host none' \
-$($IMAGE)"
+-e SPLUNK_ADD='udp 1514 -sourcetype journald -hostname '$($INSTANCEHOSTNAME)' -index os -connection_host none' \
+adobeplatform/docker-splunk:latest"
 ExecStop=/usr/bin/docker stop splunk-journald
 [X-Fleet]
 Global=true
