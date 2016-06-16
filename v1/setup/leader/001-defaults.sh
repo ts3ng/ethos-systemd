@@ -99,6 +99,7 @@ etcd-set /flight-director/config/marathon-master-protocol http
 etcd-set /flight-director/config/allow-marathon-unverified-tls false
 etcd-set /flight-director/config/mesos-master-protocol http
 etcd-set /flight-director/config/authorizer-type airlock
+etcd-set /flight-director/config/iam-role-label com.swipely.iam-docker.iam-profile
 
 
 ######################
