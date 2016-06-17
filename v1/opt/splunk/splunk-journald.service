@@ -5,6 +5,7 @@ Before=journald-splunk-pipe.service
 After=docker.service bootstrap.service
 [Service]
 EnvironmentFile=/etc/environment
+Environment="IMAGE=etcdctl get /images/splunk"
 Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
 User=core
 Restart=always
@@ -23,7 +24,7 @@ sudo -E /usr/bin/docker run --name splunk-journald \
 -p 1514:1514/udp \
 -e SPLUNK_START_ARGS="--accept-license" \
 -e SPLUNK_ADD='udp 1514 -sourcetype journald -hostname '$($INSTANCEHOSTNAME)' -index os -connection_host none' \
-adobeplatform/docker-splunk:latest"
+$($IMAGE)"
 ExecStop=/usr/bin/docker stop splunk-journald
 [X-Fleet]
 Global=true
