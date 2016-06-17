@@ -17,11 +17,23 @@ awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' cert.pem
 1. Add ncessary VPC peering parameters 
 2. Include in your secrets.json the following config parameters get splunk security parameter values form https://wiki.corp.adobe.com/display/saas/Sending+logs+to+Security+Splunk (Format Certs to Secrets.json parameter)
 ```
-"/splunk/SPLUNK_FORWARD_SERVER_LIST": "",
-"/splunk/SPLUNK_SSLPASSWORD": "",
-"/splunk/SPLUNK_ADOBECAAS_CERT": "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n",
-"/splunk/SPLUNK_CA": "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n-----BEGIN EC PRIVATE KEY-----\n-----END EC PRIVATE KEY-----\n",
+"/splunk/conf/forward_server_list": "",
+"/splunk/conf/sslpassword": "",
+"/splunk/conf/adobecaas_cert": "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n",
+"/splunk/conf/ca_cert": "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n-----BEGIN EC PRIVATE KEY-----\n-----END EC PRIVATE KEY-----\n",
 "environemtn/services": "splunk"
 ```
-
-
+3. Ensure VPC peering request is sent by adding peering varaibles to mesos_platform_base.json to SECOPS please refer to VPC peering info in https://wiki.corp.adobe.com/pages/viewpage.action?spaceKey=asp&title=Pulse+Runbook#PulseRunbook-VPCPEERING:
+```
+        "ParameterKey": "PeerVpcId",
+        "ParameterValue": "vpc-abc123de"
+    },
+    {
+        "ParameterKey": "PeerVpcCIDR",
+        "ParameterValue": "10.77.133.0/24"
+    },
+    {
+        "ParameterKey": "PeerVpcOwner",
+        "ParameterValue": "12345678901"
+    }
+```
