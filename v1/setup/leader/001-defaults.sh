@@ -15,13 +15,7 @@ echo "-------Leader node, beginning writing all default values to etcd-------"
 
 etcd-set /bootstrap.service/images-base-bootstrapped true
 
-etcd-set /images/gocron-logrotate       "index.docker.io/behance/docker-gocron-logrotate"
-etcd-set /images/sumologic              "index.docker.io/behance/docker-sumologic:latest"
-etcd-set /images/sumologic-syslog       "index.docker.io/behance/docker-sumologic:syslog-latest"
-etcd-set /images/dd-agent               "index.docker.io/behance/docker-dd-agent:latest"
 etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:latest"
-etcd-set /images/ecr-login              "index.docker.io/behance/ecr-login:latest"
-etcd-set /images/splunk                 "index.docker.io/adobeplatform/docker-splunk:latest"
 
 etcd-set /bootstrap.service/images-control-bootstrapped true
 
@@ -32,11 +26,6 @@ etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:latest"
 etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:latest"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
-etcd-set /images/dd-agent-mesos         "index.docker.io/behance/docker-dd-agent-mesos:latest"
-etcd-set /images/dd-agent-mesos-master  "index.docker.io/adobeplatform/docker-dd-agent-mesos-master:latest"
-etcd-set /images/dd-agent-mesos-slave   "index.docker.io/adobeplatform/docker-dd-agent-mesos-slave:latest"
-etcd-set /images/dd-agent-proxy         "index.docker.io/behance/docker-dd-agent-proxy:latest"
-
 
 etcd-set /bootstrap.service/images-proxy-bootstrapped true
 
