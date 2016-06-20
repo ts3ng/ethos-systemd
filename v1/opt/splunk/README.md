@@ -1,5 +1,5 @@
 #Security Splunk FleetUnit
-To install splunk security forwarding agents.  The Splunk Security forwarders drops an outputs.conf configuration and required certs to the coreos hosts in /opt/splunk/etc/system/local directory. A cert and ca cert is also required (please see: https://wiki.corp.adobe.com/display/saas/Sending+logs+to+Security+Splunk) these shoudl reside in the secrets s3 directory.
+To install splunk security forwarding agents.  The Splunk Security forwarders drops an outputs.conf configuration and required certs to the coreos hosts in /opt/splunk/etc/system/local directory. A cert and ca cert is also required (please see: https://wiki.corp.adobe.com/display/saas/Sending+logs+to+Security+Splunk) these shoudl reside in the secrets s3 directory.  STEP BY STEP OPS INSTRUCTIONS LOCATED: https://wiki.corp.adobe.com/display/cloudops/ETHOS+Enabling+Splunk+Security+Log+Forwarding+Ethos
 
 ##Configuration Requirements
 1. VPC peering w/ security splunk VPC to allow journald logs forwarding.
