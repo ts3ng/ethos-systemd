@@ -26,6 +26,7 @@ etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:latest"
 etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:latest"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
+etcd-set /images/booster                "index.docker.io/behance/booster:erl"
 
 etcd-set /bootstrap.service/images-proxy-bootstrapped true
 
