@@ -1,0 +1,32 @@
+[Unit]
+Description=Booster Worker
+Requires=docker.service
+After=docker.service
+
+[Service]
+User=core
+Restart=on-failure
+Environment="IMAGE=etcdctl get /images/booster"
+
+ExecStartPre=/usr/bin/bash -c "[ -f /home/core/.dockercfg ] || exit 1"
+ExecStartPre=/usr/bin/bash -c "[ -f /opt/mesos/credentials ] || exit 1"
+ExecStartPre=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
+
+# mkdir so `etcdctl ls /booster/nodes` below doesn't fail
+ExecStartPre=-/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && etcdctl mkdir /booster/nodes"
+
+ExecStartPre=-/usr/bin/docker kill booster
+ExecStartPre=-/usr/bin/docker rm booster
+ExecStart=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && /usr/bin/docker run \
+  --name booster \
+  --net=host \
+  -e BOOSTER_NODES=$(etcdctl ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
+  -e BOOSTER_ROLES=mesos_agent \
+  $($IMAGE)"
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+Global=true
+MachineMetadata=role=worker
