@@ -11,7 +11,9 @@ User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
-ExecStartPre=/usr/bin/docker pull $($IMAGE)
+ExecStartPre=/usr/bin/bash -c \
+"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
+docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill splunk-journald
 ExecStartPre=-/usr/bin/docker rm -f splunk-journald
 ExecStart=/usr/bin/bash -c \
