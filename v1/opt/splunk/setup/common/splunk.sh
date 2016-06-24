@@ -1,7 +1,7 @@
 #!/usr/bin/bash -x
 source /etc/environment
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $DIR/lib/helpers.sh
+source $DIR/../../../../lib/helpers.sh 
 SPLUNK_FORWARD_SERVER_LIST=$(etcd-get /splunk/config/forward-server-list)
 SPLUNK_SSLPASSWORD=$(etcd-get /splunk/config/sslpassword)
 SPLUNK_DIR="/opt/splunk/etc/system/local"
