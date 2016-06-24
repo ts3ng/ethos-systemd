@@ -7,8 +7,10 @@ fi
 
 # Handle retrying of all etcd sets and gets
 function etcd-set() {
-    etcdctl set "$@"
-    while [ $? != 0 ]; do sleep 1; etcdctl set $@; done
+    if [[ "$#" -gt 1 ]]; then
+      etcdctl set "$@"
+      while [ $? != 0 ]; do sleep 1; etcdctl set $@; done
+    fi
 }
 
 function etcd-get() {

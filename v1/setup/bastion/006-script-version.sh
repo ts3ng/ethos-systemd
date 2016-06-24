@@ -1,0 +1,1 @@
+../leader/006-script-version.sh

@@ -2,7 +2,7 @@
 
 source /etc/environment
 
-if [ "${NODE_ROLE}" != "control" ] && [ "${NODE_ROLE}" != "worker"]; then
+if [ "${NODE_ROLE}" != "control" ] && [ "${NODE_ROLE}" != "worker" ]; then
     exit 0
 fi
 

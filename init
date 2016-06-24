@@ -16,7 +16,8 @@ sudo cp --dereference ${SCRIPTDIR}/$VERSION/profile.d/${NODE_ROLE}/* /etc/profil
 source $SCRIPTDIR/$VERSION/lib/helpers.sh
 
 # Control tier - must form an etcd2 cluster first
-if [[ "$NODE_ROLE" = "control" ]]; then
+# Bastion tier - etcd2 cluster is separate from control, but also needs to be set up
+if [[ "$NODE_ROLE" = "control" || "$NODE_ROLE" = "bastion" ]]; then
   sudo ${SCRIPTDIR}/$VERSION/util/etcd2-setup.sh $SCRIPTDIR $VERSION
 fi
 
@@ -62,10 +63,29 @@ function follower-setup() {
   done
 }
 
+function bastion-setup() {
+  echo "-------Bastion node, beginning bastion setup-------"
+
+  LEADER="true"
+
+  etcd-set /bootstrap.service/leader-status started
+
+  for script in $(ls ${SCRIPTDIR}/$VERSION/setup/bastion|grep -e '.sh$')
+  do
+      sudo ${SCRIPTDIR}/$VERSION/setup/bastion/${script}
+  done
+
+  echo "-------Bastion node, writing finished flag to etcd-------"
+
+  etcd-set /bootstrap.service/leader-status finished
+
+  echo "-------Bastion node, bastion is finished, continuing bootstrap-------"
+}
+
 # Check the bootstrap process to see if this node should run the leader scripts
 etcdctl get /bootstrap.service/leader-status
 
-if [[ $? != 0 && "$NODE_ROLE" = "control" ]]; then
+if [[ $? != 0 && ("$NODE_ROLE" = "control" || "$NODE_ROLE" = "bastion") ]]; then
   # The election process follows the following algorithm:
   # 1. A list of all cluster members is obtained
   # 2. IP addresses of all members are filtered and sorted
@@ -76,7 +96,11 @@ if [[ $? != 0 && "$NODE_ROLE" = "control" ]]; then
   LOCAL_IP=$(curl -sS http://169.254.169.254/latest/meta-data/local-ipv4)
 
   if [[ "$LEADER_IP" = "$LOCAL_IP" ]]; then
-    leader-setup
+    if [[ "$NODE_ROLE" = "control" ]]; then
+      leader-setup
+    elif [[ "$NODE_ROLE" = "bastion" ]]; then
+      bastion-setup
+    fi
   fi
 fi
 
@@ -92,8 +116,18 @@ function general-units() {
   echo "-------Beginning general purpose fleet submissions-------"
   for unit in $(ls ${SCRIPTDIR}/$VERSION/fleet|grep -e '.service$\|.timer$')
   do
+    # skip control- prefixed units on non-control leader nodes (e.g., bastion)
+    if [[ $unit =~ ^control ]]; then
+      if [[ $NODE_ROLE = control ]]; then
+        submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+        start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+      else
+        continue
+      fi
+    else
       submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
       start-fleet-unit ${SCRIPTDIR}/$VERSION/fleet/${unit}
+    fi
   done
   echo "-------Done general purpose fleet submissions-------"
 }
@@ -110,9 +144,19 @@ function optional-units() {
           continue
       fi
       for unit in $(ls $servicedir|grep -e '.service$\|.timer$')
-      do
+        do
+        # skip control units on non-control leader nodes (e.g., bastion)
+        if [[ $unit =~ control ]]; then
+          if [[ $NODE_ROLE = control ]]; then
+            submit-fleet-unit $servicedir/$unit
+            start-fleet-unit $unit
+          else
+            continue
+          fi
+        else
           submit-fleet-unit $servicedir/$unit
           start-fleet-unit $unit
+        fi
       done
   done
   echo "-------Done optional fleet submissions-------"
