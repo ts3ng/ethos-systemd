@@ -1,4 +1,4 @@
-#!/usr/bin/bash -x
+#!/bin/bash 
 source /etc/environment
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../../lib/helpers.sh 
@@ -13,7 +13,7 @@ cat << EOF > /$SPLUNK_DIR/adobecaas.crt
 $(etcd-get /splunk/config/adobecaas-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
 
-cat << EOF > /$SPLUNK_DIR./genericForwarder.pem
+cat << EOF > /$SPLUNK_DIR/genericForwarder.pem
 $(etcd-get /splunk/config/ca-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
 
