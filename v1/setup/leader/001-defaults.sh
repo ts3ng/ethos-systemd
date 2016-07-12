@@ -113,6 +113,11 @@ etcd-set /zookeeper/config/password             "password"
 
 etcd-set /mesos/config/username ethos
 
+######################
+#       BOOSTER
+######################
+
+etcd-set /booster/config/enabled 0
 
 ######################
 #      SERVICES
