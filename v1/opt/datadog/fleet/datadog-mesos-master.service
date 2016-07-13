@@ -9,6 +9,7 @@ After=docker.service bootstrap.service
 # It should be run on all mesos master nodes
 # Look at adobeplatform/docker-dd-agent-mesos-master for what ports those 3 should be running on
 Environment="IMAGE=etcdctl get /images/dd-agent-mesos-master"
+EnvironmentFile=/etc/environment
 User=core
 Restart=always
 TimeoutStartSec=0
@@ -24,6 +25,9 @@ ExecStart=/usr/bin/bash -c \
 -e HOST_IP=`hostname -i` \
 -e MARATHON_USERNAME=`etcdctl get /marathon/config/username` \
 -e MARATHON_PASSWORD=`etcdctl get /marathon/config/password` \
+-e ZK_USERNAME=`etcdctl get /zookeeper/config/username` \
+-e ZK_PASSWORD=`etcdctl get /zookeeper/config/password` \
+-e STACK_NAME=$STACK_NAME \
 $($IMAGE)"
 ExecStop=/usr/bin/docker stop dd-agent-mesos-master
 
