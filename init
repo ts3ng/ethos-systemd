@@ -170,6 +170,30 @@ function specific-units() {
       submit-fleet-unit ${SCRIPTDIR}/$VERSION/fleet-local/${NODE_ROLE}/${unit}
       start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
   done
+
+  for envservice in $(etcd-get /environment/services)
+  do
+      servicedir=${SCRIPTDIR}/${VERSION}/opt/${envservice}/fleet-local/${NODE_ROLE}
+      if [[ ! -d $servicedir ]]; then
+          continue
+      fi
+      for unit in $(ls $servicedir|grep -e '.service$')
+        do
+        # skip control units on non-control leader nodes (e.g., bastion)
+        if [[ $unit =~ control ]]; then
+          if [[ $NODE_ROLE = control ]]; then
+            submit-fleet-unit $servicedir/$unit
+            start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
+          else
+            continue
+          fi
+        else
+          submit-fleet-unit $servicedir/$unit
+          start-fleet-unit "${unit%.service}${COREOS_PRIVATE_IPV4}"
+        fi
+      done
+  done
+
   echo "-------Done node-specific fleet submissions-------"
 }
 

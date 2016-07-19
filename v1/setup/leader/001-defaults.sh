@@ -13,12 +13,8 @@ echo "-------Leader node, beginning writing all default values to etcd-------"
 
 # TODO: this overloads the machine
 
-etcd-set /bootstrap.service/images-base-bootstrapped true
-
 etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:latest"
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
-
-etcd-set /bootstrap.service/images-control-bootstrapped true
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.4.0-0.1.20150828104228.ubuntu1404-mesos-0.27.0-0.2.190.ubuntu1404"
 etcd-set /images/flight-director        "index.docker.io/behance/flight-director:latest"
@@ -27,17 +23,13 @@ etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:latest"
 etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:latest"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
-etcd-set /images/booster                "index.docker.io/behance/booster:erl"
-
-etcd-set /bootstrap.service/images-proxy-bootstrapped true
+etcd-set /images/booster                "index.docker.io/behance/booster:0.1"
 
 etcd-set /images/capcom                 "index.docker.io/behance/capcom:latest"
 etcd-set /images/capcom2                "index.docker.io/behance/capcom:latest"
 etcd-set /images/proxy                  "index.docker.io/nginx:1.9.5"
 etcd-set /images/proxy-setup            "index.docker.io/behance/mesos-proxy-setup:latest"
 etcd-set /images/control-proxy          "index.docker.io/behance/apigateway:v0.0.1"
-
-etcd-set /bootstrap.service/images-worker-bootstrapped true
 
 etcd-set /images/mesos-slave            "index.docker.io/mesosphere/mesos-slave:0.27.0-0.2.190.ubuntu1404"
 

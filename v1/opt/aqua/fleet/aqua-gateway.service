@@ -1,0 +1,43 @@
+[Unit]
+Description=run aqua gateway
+After=docker.service bootstrap.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=10
+EnvironmentFile=/etc/environment
+Environment="IMAGE=etcdctl get /images/scalock-gateway"
+Environment="DB_PASSWORD=etcdctl get /environment/RDSPASSWORD"
+Environment="DB_USERNAME=etcdctl get /flight-director/config/db-username"
+Environment="SCALOCK_DB_NAME=etcdctl get /aqua/config/db-name"
+Environment="SCALOCK_DB_ENDPOINT=etcdctl get /aqua/config/db-path"
+Environment="SCALOCK_AUDIT_DB_NAME=etcdctl get /aqua/config/db-audit-name"
+
+Restart=always
+RestartSec=8
+
+ExecStartPre=/usr/bin/systemctl is-active update-os.service
+ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
+ExecStartPre=-/usr/bin/docker kill aqua-gateway
+ExecStartPre=-/usr/bin/docker rm aqua-gateway
+ExecStart=/usr/bin/sh -c "sudo docker run -p 3622:3622 --name aqua-gateway \
+  --net=host \
+  -e SCALOCK_DBUSER=$($DB_USERNAME) \
+  -e SCALOCK_DBPASSWORD=$($DB_PASSWORD) \
+  -e SCALOCK_DBNAME=$($SCALOCK_DB_NAME) \
+  -e SCALOCK_DBHOST=$($SCALOCK_DB_ENDPOINT) \
+  -e SCALOCK_AUDIT_DBUSER=$($DB_USERNAME) \
+  -e SCALOCK_AUDIT_DBPASSWORD=$($DB_PASSWORD) \
+  -e SCALOCK_AUDIT_DBNAME=$($SCALOCK_AUDIT_DB_NAME) \
+  -e SCALOCK_AUDIT_DBHOST=$($SCALOCK_DB_ENDPOINT) \
+  $($IMAGE)"
+
+ExecStop=-/usr/bin/docker stop aqua-gateway
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+Global=false
+MachineMetadata=role=control
