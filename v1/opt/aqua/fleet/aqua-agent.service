@@ -1,5 +1,5 @@
 [Unit]
-Description=run aqua agent @ %i
+Description=run aqua agent
 After=docker.service bootstrap.service
 Requires=docker.service
 
@@ -36,6 +36,5 @@ ExecStop=-/usr/bin/docker stop aqua-agent
 WantedBy=multi-user.target
 
 [[X-Fleet]
-Global=false
+Global=true
 MachineMetadata=role=worker
-MachineMetadata=ip=%i
