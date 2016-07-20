@@ -44,8 +44,8 @@ etcd-set /capcom/config/host                    127.0.0.1
 etcd-set /capcom/config/db-path                 ./capcom.db
 etcd-set /capcom/config/kv-store-server-address http://$CAPCOM_KV_ENDPOINT
 etcd-set /capcom/config/kv-ttl                  10
-etcd-set /capcom/config/log-level               "$CAPCOM_LOG_LEVEL"
-etcd-set /capcom/config/log-location            "$CAPCOM_LOG_LOCATION"
+etcd-set /capcom/config/log-level               "info"
+etcd-set /capcom/config/log-location            "stdout"
 etcd-set /capcom/config/port                    2002
 etcd-set /capcom/config/proxy                   nginx
 etcd-set /capcom/config/proxy-config-file       /etc/nginx/nginx.conf
@@ -71,10 +71,10 @@ etcd-set /flight-director/config/dockercfg-location file:///root/.dockercfg
 etcd-set /flight-director/config/debug false
 etcd-set /flight-director/config/event-interface ''
 etcd-set /flight-director/config/event-port 2001
-etcd-set /flight-director/config/fixtures "$FLIGHT_DIRECTOR_FIXTURES"
+etcd-set /flight-director/config/fixtures "prod"
 etcd-set /flight-director/config/kv-server http://localhost:2379
-etcd-set /flight-director/config/log-level "$FLIGHT_DIRECTOR_LOG_LEVEL"
-etcd-set /flight-director/config/log-location "$FLIGHT_DIRECTOR_LOG_LOCATION"
+etcd-set /flight-director/config/log-level "info"
+etcd-set /flight-director/config/log-location "stdout"
 etcd-set /flight-director/config/log-marathon-api-calls false
 etcd-set /flight-director/config/marathon-master "$FLIGHT_DIRECTOR_MARATHON_ENDPOINT"
 etcd-set /flight-director/config/mesos-master "$FLIGHT_DIRECTOR_MESOS_ENDPOINT"
