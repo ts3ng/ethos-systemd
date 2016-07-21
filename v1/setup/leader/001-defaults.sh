@@ -13,22 +13,20 @@ echo "-------Leader node, beginning writing all default values to etcd-------"
 
 # TODO: this overloads the machine
 
-etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:latest"
+etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:v1.1.0"
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.4.0-0.1.20150828104228.ubuntu1404-mesos-0.27.0-0.2.190.ubuntu1404"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:latest"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:7f3077b81ef0b3cf5d19178d90af84c774d00e80"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v0.15.1"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:0.27.0-0.2.190.ubuntu1404"
-etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:latest"
-etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:latest"
+etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"
+etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:v1.0.0"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
 etcd-set /images/booster                "index.docker.io/behance/booster:0.1"
 
-etcd-set /images/capcom                 "index.docker.io/behance/capcom:latest"
-etcd-set /images/capcom2                "index.docker.io/behance/capcom:latest"
+etcd-set /images/capcom                 "index.docker.io/behance/capcom:3ddcfe360a95adcf97d4e9f3a98f9e59057e55c6"
 etcd-set /images/proxy                  "index.docker.io/nginx:1.9.5"
-etcd-set /images/proxy-setup            "index.docker.io/behance/mesos-proxy-setup:latest"
 etcd-set /images/control-proxy          "index.docker.io/behance/apigateway:v0.0.1"
 
 etcd-set /images/mesos-slave            "index.docker.io/mesosphere/mesos-slave:0.27.0-0.2.190.ubuntu1404"
