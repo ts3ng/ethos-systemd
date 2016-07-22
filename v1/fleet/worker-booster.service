@@ -4,6 +4,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+TimeoutStartSec=10m
 User=core
 Restart=on-failure
 Environment="IMAGE=etcdctl get /images/booster"

@@ -5,7 +5,7 @@ Requires=docker.service
 
 [Service]
 User=core
-TimeoutStartSec=10
+TimeoutStartSec=10m
 EnvironmentFile=/etc/environment
 Environment="IMAGE=etcdctl get /images/scalock-gateway"
 Environment="DB_PASSWORD=etcdctl get /environment/RDSPASSWORD"

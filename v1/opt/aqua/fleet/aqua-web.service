@@ -4,6 +4,7 @@ After=docker.service bootstrap.service
 Requires=docker.service
 
 [Service]
+TimeoutStartSec=10m
 User=core
 TimeoutStartSec=infinity
 EnvironmentFile=/etc/environment
