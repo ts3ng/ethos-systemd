@@ -8,3 +8,6 @@ etcd-set /images/dd-agent-mesos         "index.docker.io/behance/docker-dd-agent
 etcd-set /images/dd-agent-mesos-master  "index.docker.io/adobeplatform/docker-dd-agent-mesos-master:latest"
 etcd-set /images/dd-agent-mesos-slave   "index.docker.io/adobeplatform/docker-dd-agent-mesos-slave:latest"
 etcd-set /images/dd-agent-proxy         "index.docker.io/behance/docker-dd-agent-proxy:latest"
+
+# TODO: remove the keys above as they are not needed anymore
+etcd-set /images/ethos-dd-agent         "index.docker.io/adobeplatform/ethos-dd-agent:v1.0"

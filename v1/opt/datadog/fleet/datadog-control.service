@@ -1,27 +1,39 @@
 # https://raw.githubusercontent.com/DataDog/docker-dd-agent/master/dd-agent.service
-# make sure the etcd /ddapikey is set!
+# make sure the etcd /datadog/config/api-key is set!
 [Unit]
-Description=Datadog Agent for Mesos, Marathon & Zookeeper
+Description=Datadog Agent for Mesos master, Marathon & Zookeeper
 After=docker.service bootstrap.service
 
 [Service]
 # CONTROL_ELB should be set in etcd
-# It should be the host that mesos, marathon & zookeeper run on
-# Look at behance/docker-dd-agent-mesos for what ports those 3 should be running on
-Environment="IMAGE=etcdctl get /images/dd-agent-mesos"
+# It should be run on all mesos master nodes
+# Look at adobeplatform/ethos-dd-agent for what ports those 3 should be running on
+Environment="IMAGE=etcdctl get /images/ethos-dd-agent"
+EnvironmentFile=/etc/environment
 User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
-ExecStartPre=-/usr/bin/docker kill dd-agent-mesos
-ExecStartPre=-/usr/bin/docker rm -f dd-agent-mesos
+ExecStartPre=-/usr/bin/docker kill dd-agent-control
+ExecStartPre=-/usr/bin/docker rm -f dd-agent-control
 ExecStart=/usr/bin/bash -c \
-"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && sudo -E /usr/bin/docker run --name dd-agent-mesos -h `hostname` \
+"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && sudo -E /usr/bin/docker run --name dd-agent-control -h `hostname` \
+-p 8125:8125/udp \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /proc/:/host/proc/:ro \
+-v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
 -e API_KEY=`etcdctl get /datadog/config/api-key` \
 -e MESOS_HOST=`etcdctl get /environment/CONTROL_ELB` \
+-e HOST_IP=`hostname -i` \
+-e MARATHON_USERNAME=`etcdctl get /marathon/config/username` \
+-e MARATHON_PASSWORD=`etcdctl get /marathon/config/password` \
+-e ZK_USERNAME=`etcdctl get /zookeeper/config/username` \
+-e ZK_PASSWORD=`etcdctl get /zookeeper/config/password` \
+-e STACK_NAME=$STACK_NAME \
+-e DD_TIER=control \
 $($IMAGE)"
-ExecStop=/usr/bin/docker stop dd-agent-mesos
+ExecStop=/usr/bin/docker stop dd-agent-control
 
 [X-Fleet]
-Global=false
+Global=true
 MachineMetadata=role=control

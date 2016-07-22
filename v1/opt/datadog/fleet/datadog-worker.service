@@ -7,17 +7,17 @@ After=docker.service bootstrap.service
 [Service]
 # CONTROL_ELB should be set in etcd
 # It should be run on all mesos slave nodes (worker tier nodes)
-# Look at adobeplatform/docker-dd-agent-mesos-slave for what ports those 3 should be running on
-Environment="IMAGE=etcdctl get /images/dd-agent-mesos-slave"
+# Look at adobeplatform/ethos-dd-agent for what ports those 3 should be running on
+Environment="IMAGE=etcdctl get /images/ethos-dd-agent"
 EnvironmentFile=/etc/environment
 User=core
 Restart=always
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
-ExecStartPre=-/usr/bin/docker kill dd-agent-mesos-slave
-ExecStartPre=-/usr/bin/docker rm -f dd-agent-mesos-slave
+ExecStartPre=-/usr/bin/docker kill dd-agent-worker
+ExecStartPre=-/usr/bin/docker rm -f dd-agent-worker
 ExecStart=/usr/bin/bash -c \
-"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && sudo -E /usr/bin/docker run --name dd-agent-mesos-slave -h `hostname` \
+"if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && sudo -E /usr/bin/docker run --name dd-agent-worker -h `hostname` \
 -p 8125:8125/udp \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /proc/:/host/proc/:ro \
@@ -25,8 +25,9 @@ ExecStart=/usr/bin/bash -c \
 -e API_KEY=`etcdctl get /datadog/config/api-key` \
 -e HOST_IP=`hostname -i` \
 -e STACK_NAME=$STACK_NAME \
+-e DD_TIER=worker \
 $($IMAGE)"
-ExecStop=/usr/bin/docker stop dd-agent-mesos-slave
+ExecStop=/usr/bin/docker stop dd-agent-worker
 
 [X-Fleet]
 Global=true
