@@ -2,7 +2,7 @@
 
 IMAGE=$(etcdctl get /images/flight-director)
 
-/usr/bin/sh -c "/usr/bin/docker run \
+/usr/bin/docker run \
   --name flight-director \
   --net='host' \
   -e LOG_APP_NAME=flight-director \
@@ -28,8 +28,8 @@ IMAGE=$(etcdctl get /images/flight-director)
   -e FD_MESOS_MASTER=`etcdctl get /flight-director/config/mesos-master` \
   -e AUTHORIZER_TYPE=`etcdctl get /flight-director/config/authorizer-type` \
   -e FD_IAMROLE_LABEL=`etcdctl get /flight-director/config/iam-role-label` \
-  -e FD_AIRLOCK_PUBLIC_KEY=\"`etcdctl get /flight-director/config/airlock-public-key`\" \
+  -e FD_AIRLOCK_PUBLIC_KEY="`etcdctl get /flight-director/config/airlock-public-key`" \
   -e FD_MARATHON_MASTER_PROTOCOL=`etcdctl get /flight-director/config/marathon-master-protocol` \
   -e FD_MESOS_MASTER_PROTOCOL=`etcdctl get /flight-director/config/mesos-master-protocol` \
   -e FD_ALLOW_MARATHON_UNVERIFIED_TLS=`etcdctl get /flight-director/config/allow-marathon-unverified-tls` \
-  $IMAGE"
+  $IMAGE
