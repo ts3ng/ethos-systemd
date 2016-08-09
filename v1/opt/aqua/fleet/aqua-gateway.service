@@ -31,6 +31,7 @@ ExecStart=/usr/bin/sh -c "sudo docker run -p 3622:3622 --name aqua-gateway \
   -e SCALOCK_AUDIT_DBPASSWORD=$($DB_PASSWORD) \
   -e SCALOCK_AUDIT_DBNAME=$($SCALOCK_AUDIT_DB_NAME) \
   -e SCALOCK_AUDIT_DBHOST=$($SCALOCK_DB_ENDPOINT) \
+  -e HEALTH_MONITOR=0.0.0.0:3263 \
   $($IMAGE)"
 
 ExecStop=-/usr/bin/docker stop aqua-gateway

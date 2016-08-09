@@ -26,6 +26,7 @@ ExecStartPre=/usr/bin/sh -c "docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill aqua-web
 ExecStartPre=-/usr/bin/docker rm aqua-web
 ExecStart=/home/core/ethos-systemd/v1/opt/aqua/util/aqua-web.sh
+ExecStartPost=/home/core/ethos-systemd/v1/opt/aqua/util/aqua-api.sh
 ExecStop=/usr/bin/docker stop aqua-web
 
 [Install]
