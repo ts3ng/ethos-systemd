@@ -17,7 +17,7 @@ etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secr
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.4.0-0.1.20150828104228.ubuntu1404-mesos-0.27.0-0.2.190.ubuntu1404"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:4db22fcd475f200c195a3f5e116f06604e894426"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:a3240d5cec9e69e0a892fb2c8945f776ec455b2f"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v0.15.1"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:0.27.0-0.2.190.ubuntu1404"
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"
@@ -82,7 +82,8 @@ etcd-set /flight-director/config/mesos-master-protocol http
 etcd-set /flight-director/config/authorizer-type airlock
 etcd-set /flight-director/config/iam-role-label com.swipely.iam-docker.iam-profile
 etcd-set /flight-director/config/scaler-protocol http
-etcd-set /flight-director/config/scaler-endpoint localhost
+etcd-set /flight-director/config/scaler-endpoint localhost:2042
+etcd-set /flight-director/config/aqua-user administrator
 
 ######################
 #     ZOOKEEPER
