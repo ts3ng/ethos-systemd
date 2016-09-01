@@ -84,7 +84,6 @@ etcd-set /flight-director/config/authorizer-type airlock
 etcd-set /flight-director/config/iam-role-label com.swipely.iam-docker.iam-profile
 etcd-set /flight-director/config/scaler-protocol http
 etcd-set /flight-director/config/scaler-endpoint localhost:2042
-etcd-set /flight-director/config/aqua-user administrator
 
 ######################
 #     ZOOKEEPER

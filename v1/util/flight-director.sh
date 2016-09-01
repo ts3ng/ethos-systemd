@@ -1,5 +1,10 @@
 #!/usr/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source /etc/environment
+source $DIR/../lib/helpers.sh
+
 IMAGE=$(etcdctl get /images/flight-director)
 
 #only set SCALER_ENDPOINT id booster is enabled
@@ -13,12 +18,12 @@ fi
 if [[ "$(etcdctl get /environment/services)" == *"aqua"* ]]
 then
   AQUA_URL=`etcdctl get /aqua/config/gateway-external`
-  uri_parser($AQUA_URL)
+  uri_parser $AQUA_URL
 
   AQUA_PROTOCOL=$uri_schema
   AQUA_ENDPOINT=$uri_address
-  AQUA_USER=`etcdctl get /flight-director/config/aqua-user`
-  AQUA_PASSWORD=`etcdctl get /flight-director/config/aqua-password`
+  AQUA_USER=`etcdctl get /aqua/config/user`
+  AQUA_PASSWORD=`etcdctl get /aqua/config/password`
 else
   AQUA_ENDPOINT=""
 fi
