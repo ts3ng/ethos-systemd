@@ -26,6 +26,9 @@ sudo -E /usr/bin/docker run --name dd-agent-proxy \
 -e PROXY=`etcdctl get /capcom/config/proxy` \
 -e CAPCOM_HOST=`etcdctl get /capcom/config/host` \
 -e CAPCOM_PORT=`etcdctl get /capcom/config/port` \
+-e RDS_FD_INSTANCE=`etcdctl get /flight-director/config/db-path | awk -F":" '{print $1}'` \
+-e RDS_FD_USERNAME=`etcdctl get /flight-director/config/db-username` \
+-e RDS_FD_PASSWORD=`etcdctl get /environment/RDSPASSWORD` \
 -e STACK_NAME=$STACK_NAME \
 -e DD_TIER=proxy \
 $($IMAGE)"
