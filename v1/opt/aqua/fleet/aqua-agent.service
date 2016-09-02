@@ -1,5 +1,5 @@
 [Unit]
-Description=run aqua agent
+Description=AquaAgent
 After=docker.service bootstrap.service
 Requires=docker.service
 
@@ -31,5 +31,6 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 Global=true
+MachineMetadata=role=worker
 
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=run aqua gateway
+Description=AquaGateway
 After=docker.service bootstrap.service
 Requires=docker.service
 
