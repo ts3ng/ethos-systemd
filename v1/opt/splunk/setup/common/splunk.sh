@@ -21,11 +21,11 @@ SPLUNK_SECOPS_ROOTCA_FORMAT=$(etcd-get /splunk/config/secops-rootca-format)
 #create splunk configuration directory
 mkdir -p $SPLUNK_DIR
 #generate/fetch secure certs in configurations directory
-cat << EOF > /$SPLUNK_DIR/secopsCA.$SPLUNK_CLOUDOPS_CERTPATH_FORMAT
+cat << EOF > /$SPLUNK_DIR/secopsCA.$SPLUNK_SECOPS_CERTPATH_FORMAT
 $(etcd-get /splunk/config/secopsca-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
 
-cat << EOF > /$SPLUNK_DIR/secopsForwarder.$SPLUNK_CLOUDOPS_ROOTCA_FORMAT
+cat << EOF > /$SPLUNK_DIR/secopsForwarder.$SPLUNK_SECOPS_ROOTCA_FORMAT
 $(etcd-get /splunk/config/secopsforwarder-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
 
