@@ -65,4 +65,6 @@ fi
   -e FD_AQUA_ENDPOINT=$AQUA_ENDPOINT \
   -e FD_AQUA_USER=$AQUA_USER \
   -e FD_AQUA_PASSWORD=$AQUA_PASSWORD \
+  -e FD_APP_LOG_DRIVER=journald \
+  -e FD_ALLOW_LOG_DRIVER_TAGGING=`etcdctl get /flight-director/config/allow-log-tagging` \
   $IMAGE
