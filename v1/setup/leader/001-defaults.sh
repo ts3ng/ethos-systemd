@@ -23,8 +23,8 @@ etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"
 etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:v1.0.0"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
-etcd-set /images/booster                "index.docker.io/behance/booster:0.3"
-etcd-set /images/booster-queue          "index.docker.io/behance/booster-queue:0.1"
+etcd-set /images/booster                "index.docker.io/behance/booster:0.4"
+etcd-set /images/booster-sidekick       "index.docker.io/behance/booster-sidekick:0.1"
 
 etcd-set /images/capcom                 "index.docker.io/behance/capcom:3ddcfe360a95adcf97d4e9f3a98f9e59057e55c6"
 etcd-set /images/proxy                  "index.docker.io/nginx:1.9.5"
@@ -109,7 +109,6 @@ etcd-set /mesos/config/username ethos
 #       BOOSTER
 ######################
 
-etcd-set /booster/config/enabled 0
 etcd-set /booster/config/nopersistence 1
 
 ######################
