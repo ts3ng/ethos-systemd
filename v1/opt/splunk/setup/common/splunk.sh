@@ -3,19 +3,19 @@ source /etc/environment
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../../lib/helpers.sh 
 SPLUNK_DIR="/opt/splunk/etc/system/local"
-SPLUNK_ENABLE_SECOPS_FORWARDER=$(etcd-get /splunk/config/enable-secops-forwarder)
-SPLUNK_ENABLE_CLOUDOPS_FORWARDER=$(etcd-get /splunk/config/enable-cloudops-forwarder)
-SPLUNK_FORWARD_SECOPS_SERVER_LIST=$(etcd-get /splunk/config/forward-secops-server-list)
-SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/forward-cloudops-server-list)
-SPLUNK_SECOPS_SSLPASSWORD=$(etcd-get /splunk/config/secops-sslpassword)
-SPLUNK_CLOUDOPS_SSLPASSWORD=$(etcd-get /splunk/config/cloudops-sslpassword)
+SPLUNK_ENABLE_SECOPS_FORWARDER=$(etcd-get /splunk/config/secops/enable-forwarder)
+SPLUNK_ENABLE_CLOUDOPS_FORWARDER=$(etcd-get /splunk/config/cloudops/enable-forwarder)
+SPLUNK_FORWARD_SECOPS_SERVER_LIST=$(etcd-get /splunk/config/secops/forward-server-list)
+SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/cloudops/forward-server-list)
+SPLUNK_SECOPS_SSLPASSWORD=$(etcd-get /splunk/config/secops/sslpassword)
+SPLUNK_CLOUDOPS_SSLPASSWORD=$(etcd-get /splunk/config/cloudops/sslpassword)
 SPLUNK_SECOPS_INDEX=$(etcd-get /splunk/config/secops-index)
 SPLUNK_CLOUDOPS_INDEX=$(etcd-get /splunk/config/cloudops-index)
 SPLUNK_FORWARDER_HOST=`curl -s http://169.254.169.254/latest/meta-data/hostname`
-SPLUNK_CLOUDOPS_CERTPATH_FORMAT=$(etcd-get /splunk/config/cloudops-certpath-format)
-SPLUNK_SECOPS_CERTPATH_FORMAT=$(etcd-get /splunk/config/secops-certpath-format)
-SPLUNK_CLOUDOPS_ROOTCA_FORMAT=$(etcd-get /splunk/config/cloudops-rootca-format)
-SPLUNK_SECOPS_ROOTCA_FORMAT=$(etcd-get /splunk/config/secops-rootca-format)
+SPLUNK_CLOUDOPS_CERTPATH_FORMAT=$(etcd-get /splunk/config/cloudops/certpath-format)
+SPLUNK_SECOPS_CERTPATH_FORMAT=$(etcd-get /splunk/config/secops/certpath-format)
+SPLUNK_CLOUDOPS_ROOTCA_FORMAT=$(etcd-get /splunk/config/cloudops/rootca-format)
+SPLUNK_SECOPS_ROOTCA_FORMAT=$(etcd-get /splunk/config/secops/rootca-format)
 
 
 #create splunk configuration directory
