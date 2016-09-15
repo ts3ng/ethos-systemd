@@ -60,4 +60,5 @@ fi
   -e FD_AQUA_PASSWORD=$AQUA_PASSWORD \
   -e FD_APP_LOG_DRIVER=journald \
   -e FD_ALLOW_LOG_DRIVER_TAGGING=`etcdctl get /flight-director/config/allow-log-tagging` \
+  -e FD_DISABLE_V1_API=`etcdctl get /flight-director/config/disable-v1-api` \
   $IMAGE

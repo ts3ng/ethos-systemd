@@ -17,7 +17,7 @@ etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secr
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.5.0-0.1.20160824153434.ubuntu1404-mesos-1.0.0"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:c5e22bb3e7f2d2149b9744b9e0169ae756d5852a"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:8e05dddcb45f70258de4400d22fcbab9afb830f0"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v0.15.1"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:0.27.0-0.2.190.ubuntu1404"
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"
@@ -86,6 +86,7 @@ etcd-set /flight-director/config/scaler-protocol http
 etcd-set /flight-director/config/scaler-endpoint localhost:2042
 #This needs to be false for Docker < 1.11. Change to true for newer clusters
 etcd-set /flight-director/config/allow-log-tagging false
+etcd-set /flight-director/config/disable-v1-api false
 
 ######################
 #     ZOOKEEPER
