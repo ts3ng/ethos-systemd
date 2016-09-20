@@ -7,7 +7,7 @@ fi
 source /etc/environment
 
 IMAGE=$(etcdctl get /images/fluentd)
-FLUENTD_FORWARDER_PORT=$(etcdctl get /logging/config/fluentd-router-port)
+FLUENTD_FORWARDER_PORT=$(etcdctl get /logging/config/fluentd-forwarder-port)
 FLUENTD_MONITOR_PORT=$(etcdctl get /logging/config/fluentd-monitor-port)
 
 /usr/bin/docker run \
@@ -19,7 +19,7 @@ FLUENTD_MONITOR_PORT=$(etcdctl get /logging/config/fluentd-monitor-port)
   -e FLUENTD_ETHOSPLUGIN_CACHE_TTL=$(etcdctl get /logging/config/fluentd-ethosplugin-cache-ttl) \
   -e FLUENTD_ETHOSPLUGIN_GET_TAG_FLAG=$(etcdctl get /logging/config/fluentd-ethosplugin-get-tag-flag) \
   -e FLUENTD_ETHOSPLUGIN_CONTAINER_TAG=$(etcdctl get /logging/config/fluentd-ethosplugin-container-tag) \
-  -e FLUENTD_ETHOSPLUGIN_LOGTYPE_RULE=$(etcdctl get /logging/config/fluentd-ethosplugin-logtype-rule) \
+  -e FLUENTD_ETHOSPLUGIN_LOGTYPE_RULE="$(etcdctl get /logging/config/fluentd-ethosplugin-logtype-rule)" \
   -e FLUENTD_HTTPEXT_BUFFER_TYPE=$(etcdctl get /logging/config/fluentd-httpext-buffer-type) \
   -e FLUENTD_HTTPEXT_BUFFER_QUEUE_LIMIT=$(etcdctl get /logging/config/fluentd-httpext-buffer-queue-limit) \
   -e FLUENTD_HTTPEXT_BUFFER_CHUNK_LIMIT=$(etcdctl get /logging/config/fluentd-httpext-buffer-chunk-limit) \
