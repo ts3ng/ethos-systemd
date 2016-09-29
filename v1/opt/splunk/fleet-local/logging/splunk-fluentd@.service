@@ -22,6 +22,7 @@ sudo -E /usr/bin/docker run --name splunk-fluentd \
 -v /opt/splunk-fluentd/etc/system/local:/var/opt/splunk/etc/system/local \
 --hostname=$($INSTANCEHOSTNAME) \
 -p 9997:9997 \
+-p 9998:9998 \
 -p 8089:8089 \
 -p 8000:8000 \
 -e SPLUNK_START_ARGS="--accept-license" \
