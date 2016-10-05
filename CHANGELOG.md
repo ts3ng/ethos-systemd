@@ -1,3 +1,7 @@
+### 2016-10-05
+* audit-docker-daemon
+
 ### 2016-09-21
 * Added CHANGELOG
 * Updated PULL_REQUEST_TEMPLATE.md
+
