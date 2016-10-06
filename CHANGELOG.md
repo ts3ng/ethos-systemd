@@ -1,3 +1,6 @@
+### 2016-10-06
+* Update to mesos-proxy with `jsonp` fix
+
 ### 2016-10-05
 * audit-docker-daemon
 
