@@ -1,3 +1,6 @@
+### 2016-10-10
+* Allow for the configuration of docker logging driver for application deployments.
+
 ### 2016-10-06
 * Update to mesos-proxy with `jsonp` fix
 

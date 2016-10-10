@@ -87,6 +87,7 @@ etcd-set /flight-director/config/scaler-endpoint localhost:2042
 #This needs to be false for Docker < 1.11. Change to true for newer clusters
 etcd-set /flight-director/config/allow-log-tagging false
 etcd-set /flight-director/config/disable-v1-api false
+etcd-set /flight-director/config/app-log-driver journald
 
 ######################
 #     ZOOKEEPER
