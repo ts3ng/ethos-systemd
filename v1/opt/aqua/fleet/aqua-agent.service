@@ -3,7 +3,6 @@ Description=Aqua-Security
 After=docker.service bootstrap.service
 Requires=docker.service
 
-
 [Service]
 EnvironmentFile=/etc/environment
 Environment="SCALOCK_TOKEN=etcdctl get /aqua/config/aqua-token"
@@ -14,22 +13,16 @@ User=core
 Restart=always
 TimeoutStartSec=10m
 
-ExecStartPre=/usr/bin/systemctl is-active update-os.timer
-ExecStartPre=/usr/bin/sh -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
-docker pull $($IMAGE)"
+ExecStartPre=/usr/bin/systemctl is-active update-os.service
+ExecStartPre=/usr/bin/sh -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi &&  docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker rm aqua-launcher
-ExecStartPre=-/usr/bin/docker pull behance/aqua-launcher
-ExecStartPre=/usr/bin/bash -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
-sudo docker run --name=aqua-launcher -v /var/run/docker.sock:/var/run/docker.sock \
--e SCALOCK_SERVER=$($SCALOCK_GATEWAY_ENDPOINT) \
+ExecStart=/usr/bin/bash -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi &&  \
+sudo docker run --name=aqua-launcher -v /var/run/docker.sock:/var/run/docker.sock  \
+-e SCALOCK_SERVER=$($SCALOCK_GATEWAY_ENDPOINT)  \
 -e SCALOCK_TOKEN=$($SCALOCK_TOKEN)  \
--e SCALOCK_IMAGE=$($IMAGE) \
-behance/aqua-launcher /opt/aqua/aqua_launcher.sh install"
-
-ExecStart=/usr/bin/bash -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
-sudo docker run -v /var/run/docker.sock:/var/run/docker.sock behance/aqua-launcher /opt/aqua/aqua_launcher.sh monitor"
-
-ExecStop=/usr/bin/docker stop aqua-launcher
+-e DOCKER_SCHEDULER=fleet  \
+-e AQUA_RUN_WATCHER=yes  \
+-e SILENT=yes  $($IMAGE)"
 
 [Install]
 WantedBy=multi-user.target
@@ -37,5 +30,4 @@ WantedBy=multi-user.target
 [X-Fleet]
 Global=true
 MachineMetadata=role=worker
-
 
