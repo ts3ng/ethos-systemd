@@ -1,0 +1,16 @@
+[Unit]
+Description=Check for CoreOS updates
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/home/core/ethos-systemd/v1/util/update-check.sh
+
+[X-Fleet]
+Global=true
+# just the worker tier for now and then only if added to etcd /services
+#MachineMetadata=role=worker
+
