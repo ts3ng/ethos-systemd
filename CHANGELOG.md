@@ -1,3 +1,6 @@
+### 2016-10-12
+* Added 2 environment variables to booster fleet
+
 ### 2016-10-10
 * Update aqua version to 1.2.3
 * Move away from behance launcher container
