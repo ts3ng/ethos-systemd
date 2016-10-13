@@ -1,3 +1,6 @@
+### 2016-10-13
+* added LVC support to splunk units.
+
 ### 2016-10-06
 * Update to mesos-proxy with `jsonp` fix
 
