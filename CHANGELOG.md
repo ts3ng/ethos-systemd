@@ -2,6 +2,10 @@
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
 ### 2016-10-10
+* Update aqua version to 1.2.3
+* Move away from behance launcher container
+
+### 2016-10-10
 * Allow for the configuration of docker logging driver for application deployments.
 
 ### 2016-10-06
