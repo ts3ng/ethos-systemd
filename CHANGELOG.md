@@ -1,3 +1,6 @@
+### 2016-10-14
+* Remove image authorization and will re add after aqua separates image authorization with image scanning
+
 ### 2016-10-10
 * Allow for the configuration of docker logging driver for application deployments.
 
