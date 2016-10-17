@@ -1,6 +1,9 @@
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
+### 2016-10-12
+* Added 2 environment variables to booster fleet
+
 ### 2016-10-10
 * Update aqua version to 1.2.3
 * Move away from behance launcher container
