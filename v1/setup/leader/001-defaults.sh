@@ -115,6 +115,7 @@ etcd-set /mesos/config/username ethos
 ######################
 
 etcd-set /booster/config/nopersistence 1
+etcd-set /booster/config/nofdauth 1
 
 ######################
 #      SERVICES
@@ -132,12 +133,12 @@ etcd-set /adobe.com/settings/etcd-locks/coreos_reboot/num_worker 1
 etcd-set /adobe.com/settings/etcd-locks/coreos_reboot/num_control 1
 etcd-set /adobe.com/settings/etcd-locks/coreos_reboot/num_proxy 1
 
-# 
+#
 etcd-set /adobe.com/settings/etcd-locks/coreos_drain/num_worker 1
 etcd-set /adobe.com/settings/etcd-locks/coreos_drain/num_control 1
 etcd-set /adobe.com/settings/etcd-locks/coreos_drain/num_proxy 1
 
-# 
+#
 etcd-set /adobe.com/settings/etcd-locks/booster_drain/num_worker 1
 etcd-set /adobe.com/settings/etcd-locks/booster_drain/num_control 1
 etcd-set /adobe.com/settings/etcd-locks/booster_drain/num_proxy 1
