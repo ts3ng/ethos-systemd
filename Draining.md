@@ -1,11 +1,28 @@
 # Skopos
-Skopos constitutes the orderly draining and rebooting of CoreOS worker nodes with the goal of no disruption to the Mesos created *docker* instances running on them.  To be effective, the app instances must balanced such that at least 2 instances are running on *different* nodes within the balancer space.
 
-> The marathon constraint  `[[ hostname UNIQUE ]]`, with instance count of at least 2, should be used for effective use of this PR. 
+[TOC]
+##Overview
+Skopos mediates the orderly draining and rebooting of CoreOS worker nodes with the goal of no service disruption as the Mesos/Marathon created docker instances are migrated to non-draining nodes.  
 
-As docker provides a means to create user defined networks that can be wholey isolated, this project specifically targets docker instances running with *bridged* and *host* networks - as defined by docker.
+Skopos' original use cases include supporting Ethos worker-tier OS updates and Booster scale down events.  However,  the script [v1/util/launch_workers_reboot.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/launch_workers_reboot.sh) can be used to trigger an orderly worker-tier drain/reboot for any reason.
 
-## Other Assumptions
+Skopos employs a cluster-wide locking system backed by etcd and facilitated by [etcd-locks](https://github.com/adobe-platform/etcd-locks).   While [etcd-locks](https://github.com/adobe-platform/etcd-locks) is a separate project, it was created to support Skopos. 
+
+> Note: [etcd-locks](https://github.com/adobe-platform/etcd-locks) is based on CoreOS' [locksmith](https://github.com/coreos/locksmith).   CoreOS' locksmith uses hardcoded etcd locking locations and outcomes(reboot) while etcd-locks generalizes cluster-wide locking making no assumption as to the purpose for the lock.  
+
+For Skopos to be effective, the app instances running across the worker tier must balanced(scheduled) such that at least 2 instances are running on *different* nodes within the balancer space.  If you allow more than one simulataneous lock holder [/adobe.com/settings/etcd-locks/coreos_reboot/num_worker](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/setup/leader/001-defaults.sh#L130),  then you must have more num_workers+1 instances minimally running on separate nodes across the worker tier.
+
+> Using the marathon constraint  `[[ hostname UNIQUE ]]`, with instance count of at least 2, should be used for effective use of Skopos. 
+
+As docker provides a means to create user defined networks that can be wholey isolated, this project specifically targets docker instances running with *bridged* and *host* networks only - as defined by docker.
+
+Skopos leverages Marathon's reaction to health check failures (re-deployment) by using iptables to force them fail on purpose.  By using a set of SYN blocking only iptable's rule to the pool of current TCP listeners, existing connections are allowed to complete while new connection attempts fail.  
+
+> For this reason, it is vital that balancers do **not** Keep-Alive connections for more that 60 seconds.  
+
+Since Marathon will move re-schedule unhealthy docker instances, it is important to block the draining Mesos slave from accepting new Mesos offers.  By using the Mesos maintenance API and/or stopping the mesos-slave (depending on Mesos version), new attempts to deploy to draining node are rejected ensuring redeployment happens on a new node.
+ 
+## Assumptions
 ### General
 - The system uses CoreOS
 - The system uses AWS (for now)
@@ -17,55 +34,69 @@ As docker provides a means to create user defined networks that can be wholey is
 - Zookeeper runs on the same node as the mesos-master
 - Only docker instances managed by Mesos are drained in the worker tier
 - Mesos master and slave are controlled by systemd units and these units are used to manage the Mesos life-cycle
-- The system has enough available resources to handle all resources deriving from a drained node
-- Only Marathon and Mesos processes are `drained` in the control tier.  
-
-> Due to mesos 0.27 maintenance API issues, the graceful shutdown (full draining) is unsupported in this release.  However orderly draining of the proxy and control tiers is supported
-
-- Scale down operations supported (booster draining) are an end of life task for the host.
+- The system has enough available resources to handle all resources re-scheduled by marathon eminating from a drained node(s)
+- The scale down operations supported (booster draining) by Skopos are considered an end of life task for the *host* i.e the ec2 instance gets destroyed
 - Inbounds connections to marathon orchestrated apps, should be mediated by a balancer with a least 2 instances running on different nodes, are supported by this process for tapering and elimination.
 > Inbound connection timeouts should ideally be set to 60 secs but no more than 300 seconds
 
-- Outbound connections are the responsibilty of the app instance.  However, the drain process accommodates that shutdown by sending SIGTERM (via docker stop) then waits 300 seconds before sending SIGKILL (via docker kill).
+- All flight-director/marathon applications include a health check
+- Outbound connections are the responsibilty of the app instance.  However, the Skopos accommodates that shutdown by sending SIGTERM (via `docker kill --signal SIGTERM`) then waits 300 seconds before sending SIGKILL (via docker kill).
 
 > marathon-lb supports docker instance labeling that, in the future, be used to control the time between `SIGTERM` and `SIGKILL`
 
 
 ## Limitations
 - Marathon is currently unable to handle inverse offers from Mesos.
-  - Inverse offers are sent by mesos when a node is scheduled for maintenance
+	 - Inverse offers are sent by mesos when a node is scheduled for maintenance
+- docker instances not associated with a marathon job are assumed to be controlled by a systemd unit
+- bash is the main scripting vehicle for Skopos so that it works with vanilla CoreOS
+
 
 ##Requirements
-- [etcd-locks](https://github.com/adobe-platform/etcd-locks) can be pulled from the adobe-platform docker registry/
+- [etcd-locks](https://github.com/adobe-platform/etcd-locks)
+
 ## Quick start
-- With this PR, the skopos.sh process starts via a fleet unit and is intended to run forever.
-- Without further action, nothing will happen.
-- To cause a reboot on a single host, visit that host and run
+
+- **Skopos** launches a systemd service unit  - on all hosts, in all tiers - using by a global fleet unit launched on the etcd leader at cluster startup.  The skopos systemd unit runs [skopos.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/skopos.sh)  which runs forever.
+- [skopos.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/skopos.sh), the target of the systemd unit skopos.service, drives an orderly reboot.
+	-  To manually cause a reboot of a single host, visit that host and run
 ```
 core@coreos: touch /var/lib/skopos/needs_reboot
 ```
-- To cause the entire worker tier to reboot after draining in an orderly fashion, visit any (worker,proxy,control) node (they all have fleet) and run:
+- The **update-os.service** systemd unit runs like a one-shot launching every 5 minutes via **update-os.timer** every 5 minutes
+	- *update-os.service* runs [update-os.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/update-check.sh) which runs **update_engine_client** to see if a reboot is needed and if so, it triggers **skopos** as above.
+> Note: because **update-os.service** is a short-lived service, it appears to systemd -  most of the time -  as **inactive**.  Therefore, use **update-os.timer** for as  `systemdctl is-active update-os.timer`
+
+- **update_engine.service** is the built in CoreOS unit that downloads and installs CoreOS updates.  It does not directly reboot a host.
+- [launch_booster_drain.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/launch_booster_drain.sh) schedules a systemd unit via fleet targeting the current host for draining. 
+
+- [launch_workers_reboot.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/launch_workers_reboot.sh) - triggers *skopos* mediated reboot on all hosts in the Ethos worker tier  
+	- To cause the entire worker tier to reboot,run:
 ```
 core@coreos:/home/core $ sudo ethos-systemd/v1/util/launch_worker_reboot.sh
 ```
-- To cause the core node you're alreay on to drain, booster style, run:
+- To control the number of simultaneous hosts are rebooting per tier, use 
 ```
-core@coreos:/home/core $ sudo ethos-systemd/v1/util/launch_booster_drain.sh
+etcdctl set /adobe.com/settings/etcd-locks/coreos_reboot/num_worker 1
+etcdctl set /adobe.com/settings/etcd-locks/coreos_reboot/num_control 1
+etcdctl set /adobe.com/settings/etcd-locks/coreos_reboot/num_proxy 1
 ```
-For cluster wide control, use ansible and see `Running` below
+For more cluster wide control, use ansible
+> See `Running` below
 
 ## Flow
 Console Trigger
-![Console Trigger](https://f4tq.github.io/images/coreos_console_trigger.svg)
+![Console Trigger](https://git.corp.adobe.com/pages/fortescu/images/coreos_console_trigger.svg)
 
 Skopos
-![Skopos](https://f4tq.github.io/images/skopos.svg)
+
+![Skopos](https://git.corp.adobe.com/pages/fortescu/images/skopos.svg)
 
 App
-![App](https://f4tq.github.io/images/app_deploy.svg)
+![App](https://git.corp.adobe.com/pages/fortescu/images/app_deploy.svg)
 
 Locust
-![Locust](https://f4tq.github.io/images/locust.svg)
+![Locust](https://git.corp.adobe.com/pages/fortescu/images/locust.svg)
 
 
 ## Components
@@ -74,36 +105,56 @@ Locust
 - fleet
 
 ### Skopos components
-Skopos constitutes a locking system and a lot of scripts to handle the draining process.
+Skopos leverages a locking system facilated by [etcd-locks](https://github.com/adobe-platform/etcd-locks) and etcd as well as a collection of scripts to handle the various steps in the draining process.
 #### fleet/systemd units
-Fleet is used to schedule global units with systemd.
-
+Fleet is used to schedule global units with systemd.  Skopos provides scripts to dynamically create fleet units for booster draining and scheduling tier wide reboots.
 ##### Units
-###### [update-os.service](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/fleet/update-os.service)
-- This unit was previously used to check CoreOS for updates.
-- Now this service reacts to reboot actions resulting from a CoreOS update requirement.
-- This unit can be triggered manually by touch `/var/lib/skopos/needs_reboot`
-- This unit can be triggered to reboot the entire worker tier by running `sudo ethos-systemd/v1/util/launch_workers_reboot.sh`
+###### [update-os.service](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/required/update-os.service)
+- In the past, update-os.service checked for updates and if required, it immediately caused a reboot.
+- update-os.service continues to check for updates requiring reboot **but** now triggers skopos to coordinate the reboot instead of immediately rebooting.
+- Invokes  [update-check.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/update-check.sh) 
+> Note:  update-check.sh will permanently disable locksmith if it is still active.  locksmith cannot be used with skopos.
+> Also, DO NOT make update-os.service a dependency of other units.  Use update-os.timer instead.
 
-###### [update-os.timer](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/opt/autoload/fleet/update-os.timer), [update-os.service](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/opt/autoload/fleet/update-os.service), and [update-check.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/update-check.sh) collection
+###### [update-os.timer](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/required/update-os.timer), [update-os.service](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/required/update-os.service)
 
-These units are currently optional.  It should eventually be mandatory.  It can be used to trigger a given node to reboot in response to a CoreOS update that needs a reboot.
+ - update-os.timer systemd unit invokes update-os.service every 5 minutes
 
-###### [drain-cleanup.timer](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/fleet/drain-cleanup.timer),[drain-cleanup.service](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/fleet/drain-cleanup.service),[drain-cleanup.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/drain-cleanup.sh)
+###### [skopos.service](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/skopos.service)
+- The Skopos service unit watches for the existence of  `/var/lib/skopos/needs_reboot` to trigger the reboot mechanism.
 
-This timer unit, service unit and script clean up after oneshots that are scheduled and launched by fleet as oneshots.  The oneshot executes correctly via systemd but fleet states don't align with systemd states meaning the unit can be re-scheduled later which is not the desired effect.  
+> Note: Skopos removes `/var/lib/skopos/needs_reboot` on completion
 
-The unit that this long-running unit set cleans up after are launched by  [launch_booster_drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/launch_booster_drain.sh) and [launch_workers_reboot.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/launch_workers_reboot.sh).
+- Under normal circumstances, the update-os.service systemd unit creates  `/var/lib/skopos/needs_reboot` to trigger skopos.service when the **update_engine_client** indicates the system needs a reboot.
 
+- skopos.service proceeds when it can acquire the tier-wide lock.
+	- Simultanous lock holder are controlled by the etcd value:
+ ```
+ $ etcdctl get /adobe.com/settings/etcd-locks/coreos_reboot/num_worker
+ ```
+ > The default value for /adobe.com/settings/etcd-locks/coreos_reboot/num_worker is 1
+
+> Note: use `ethos-system/v1/util/lockctl.sh` to manually query, lock, unlock the tier-wide reboot lock from any host.  Exercise caution!
+
+- Upon acquiring the tier-wide reboot lock, skopos invokes [drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain.sh)
+
+- skopos.service can also be triggered asynchronously to reboot the entire worker tier by running `sudo ethos-systemd/v1/util/launch_workers_reboot.sh`
+
+
+###### [drain-cleanup.timer](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/drain-cleanup.timer), [drain-cleanup.service](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/fleet/drain-cleanup.service), [drain-cleanup.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain-cleanup.sh)
+
+ - drain-cleanup* works by using a systemd timer & service unit pairing.  
+ - The service-unit's target [drain-cleanup.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain-cleanup.sh) cleans up after oneshots that are scheduled and launched asynchronously by fleet ([launch_workers_reboot.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/launch_workers_reboot.sh)) as oneshots and [launch_booster_drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/launch_booster_drain.sh) .
+ - Without the drain-cleanup.sh, fleet book-keeping (etcd:/_coreos.com/fleet) keeps track of the fleet jobs forever, polluting etcd.
 
 #### Docker images
 ##### [etcd-locks](https://github.com/adobe-platform/etcd-locks)
 
-- `etcd-locks` provides a locking system that allows for a configurable number of simultaenous lock holders
-- they are akin to semaphores
-- locks have values or *tokens*
+- [etcd-locks](https://github.com/adobe-platform/etcd-locks) provides a locking system that allows for a configurable number of simultaenous lock holders that can be logically grouped by tier.
+- etcd-locks are akin to semaphores
+- etcd-locks have values or *tokens*
 
-> cluster-wide lock token values are the machine-id (`cat /etc/machine-id`)
+> cluster-wide lock token values are the CoreOS machine-id (`cat /etc/machine-id`)
 
 - skopos uses 2 types of locks: cluster-wide and host.
 - cluster-wide locks have groups or tiers with a configurable number of simultaneous lock holder per-*group*.
@@ -112,81 +163,71 @@ The unit that this long-running unit set cleans up after are launched by  [launc
 
 ```
 $ etcdctl ls --recursive | grep adobe.com
-/adobe.com/locks
-/adobe.com/locks/cluster-wide
-/adobe.com/locks/cluster-wide/booster_drain
-/adobe.com/locks/cluster-wide/booster_drain/groups
-/adobe.com/locks/cluster-wide/booster_drain/groups/worker
 /adobe.com/locks/cluster-wide/booster_drain/groups/worker/semaphore
-/adobe.com/locks/cluster-wide/booster_drain/groups/proxy
-/adobe.com/locks/cluster-wide/booster_drain/groups/proxy/semaphore
-/adobe.com/locks/cluster-wide/booster_drain/groups/control
+wide/booster_drain/groups/proxy/semaphore
 /adobe.com/locks/cluster-wide/booster_drain/groups/control/semaphore
-/adobe.com/locks/cluster-wide/coreos_reboot
-/adobe.com/locks/cluster-wide/coreos_reboot/groups
-/adobe.com/locks/cluster-wide/coreos_reboot/groups/control
 /adobe.com/locks/cluster-wide/coreos_reboot/groups/control/semaphore
-/adobe.com/locks/cluster-wide/coreos_reboot/groups/worker
 /adobe.com/locks/cluster-wide/coreos_reboot/groups/worker/semaphore
-/adobe.com/locks/cluster-wide/coreos_reboot/groups/proxy
 /adobe.com/locks/cluster-wide/coreos_reboot/groups/proxy/semaphore
-/adobe.com/locks/per-host
 /adobe.com/locks/per-host/4cafcc53b54e4f65a942158944e09416
 /adobe.com/locks/per-host/43de1d7058d74510bfe550b12a516111
 /adobe.com/locks/per-host/1e5557a39de44ac88caa39dbfa64c14b
 -- snip -- 
 ```
 
-> Strictly speaking, groups names are arbitrary to etcd-locks.  They are aligned with CoreOS/Ethos tiers for skopos.
+> Strictly speaking, groups names are arbitrary to [etcd-locks](https://github.com/adobe-platform/etcd-locks).  They are aligned with CoreOS/Ethos tiers for skopos.
 
-- use [v1/util/lockctl.sh](https://github.com/f4tq/ethos-systemd/blob/feature/drain-submission/v1/util/lockctl.sh) to view and manipulate cluster wide and host locks
-- see [v1/lib/lock_helpers.sh](https://github.com/f4tq/ethos-systemd/blob/feature/drain-submission/v1/lib/lock_helpers.sh) to see how etcd-locks are wrapped for skopos.
-- host locks are named after the machine-id.
+- use [v1/util/lockctl.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/util/lockctl.sh) to view and manipulate cluster wide and host locks
+- see [v1/lib/lock_helpers.sh](https://git.corp.adobe.com/adobe-platform/ethos-systemd/blob/master/v1/lib/lock_helpers.sh) to see how [etcd-locks](https://github.com/adobe-platform/etcd-locks) are wrapped for skopos.
+- host locks are *named* using a host's machine-id.
     - they are intended to help mediate conflicting operations occurring within a single host.
         -  such as guarding from `update-os` and `booster-drain` from occurring at the same time and causing kaos.
     - skopos host lock token values are *REBOOT*, *DRAIN*,*BOOSTER*
 
 
 #### Scripts
-All scripts in skopos are placed in [ethos-systemd](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util).
-Many scripts source [drain_helpers](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/lib/drain_helpers.sh) but all source [lock_helpers](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/lib/lock_helpers.sh).
+All scripts in skopos are placed in [ethos-systemd](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util).
+Many scripts **source** [drain_helpers](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/lib/drain_helpers.sh) while all **source** [lock_helpers](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/lib/lock_helpers.sh).
 
-##### [skopos.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/skopos.sh)
- - Single run fleet units that trigger the skopos.sh on each node.  Currently, that amounts to touching /var/lib/skopos/needs_reboot
+##### [skopos.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/skopos.sh)
+ - Target of Skopos systemd unit
+ - Runs on every node via skopos.service
+ - Watches for the existence /var/lib/skopos/needs_reboot
+ - Acquires the reboot tier wide lock
+ - Invokes drain.sh 
+ - Reboots host
+ - After reboot, waits for the node it rebooted to rejoin mesos before releasing the tier-wide lock
  
- - Triggers on fleet, systemd unit per worker node
-   ```
-   fleetctl list-machines | grep role=worker| awk '{print $1}'
-   ```
- - Fleet global units don't work since they're hard to destroy.  In the face of auto-scaling, they can have the unintended consequence of starting a reboot on a new node
- 
- - Each unit's ExecStart destroys the fleet unit that it's part of as it's last action
- 
- - The units leave no trace except on purpose.
- 
-##### [drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/drain.sh)
-Drives the draining process for control,  proxy, and worker tiers.  It uses all locking primitives, schedules mesos maintenance,  uses marathon api, docker and uses iptables to drain connections.
+##### [drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain.sh)
 
-##### [launch_workers_reboot.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/launch_booster_drain.sh)
-Creates a dynamic `oneshot` fleet unit targeting all worker nodes.  In this iteration, it simply touches `/var/lib/skopos/needs_reboot` on all worker nodes.
+ - Drives the draining process for control,  proxy, and worker tiers.  It uses all locking primitives, schedules mesos maintenance,  uses marathon api, docker and uses iptables to drain connections.
+ - Acquires the host lock
 
-##### [launch_booster_drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/launch_booster_drain.sh)
+##### [launch_workers_reboot.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/launch_workers_reboot.sh)
+- Creates a dynamic `oneshot` fleet unit targeting all worker nodes.  This unit simply touches `/var/lib/skopos/needs_reboot` on all worker nodes.
+- It can be called from **any** fleet enabled node
+##### [launch_booster_drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/launch_booster_drain.sh)
 - Creates a pure oneshot fleet unit to drive booster draining using only curl, the fleet socket (`/var/run/fleet.socket`) and the value CoreOS machine id (`/etc/machine-id`).
-- The created unit targets only the machine-id it's created with.  It explicitely destroys the fleet unit (i.e. itself) it creates via ExecStart 
+- The created unit targets only the host it's run from.  It uses the current host's machine-id.  Fleet identifies hosts for scheduling purposes by machine-id. 
+- The script can trigger a callback on completion
 - The script understands both cli switches and environment variables:
    - Environment variables
       -  `NOTIFY`
       -  `MACHINEID`
    - Command line switches
-
-    `--notify`
+    `--notify <url>`
+    
+	   - invokes with url with curl
 	   - default: 'mock' is a no-op
-    `--machine-id`
+   
+	    `--machine-id`
            - default: `cat /etc/machine-id`
 
-The fleet unit invokes [booster-drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/booster-drain.sh)
+- Invokes [booster-drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/booster-drain.sh)
+- Can be called from any fleet enabled node
+- Requires sudo
 
-##### Examples
+###### Example
 
 - Via docker
    - Passing Environment, Mounting /var/run/fleet.socket
@@ -200,41 +241,47 @@ docker run -e MACHINEID=`cat /etc/machine-id` -v /var/run/fleet.socket:/var/run/
 ```
 sudo ethos-systemd/v1/util/launch_booster_drain.sh --notify http://www.google.com
 ```
-##### From any ethos
 
-####  [booster-drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/booster-drain.sh)
-The target of the fleet-unit created by  [launch_booster_drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/launch_booster_drain.sh).
+#####  [booster-drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/booster-drain.sh)
+The target of the fleet-unit created by  [launch_booster_drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/launch_booster_drain.sh).
 
 It acquires the cluster-wide, tier specific `booster` lock.  It the then calls `drain.sh` with 'BOOSTER' (used with the host lock) and drives the drain.
 If the `--notify` is used,  and is not `mock` then the url is invoked with the machine-id on completion.
-####  [lockctl.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/lockctl.sh)
-Provides a cli for locking, unlocking, state retrieval for host and cluster wide locks.
+#####  [lockctl.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/lockctl.sh)
+- Provides a cli for locking, unlocking, state retrieval for host and cluster wide locks.
 #### Mesos API related
 These scripts are used to schedule downtime for mesos master & slaves from the perspective of the node it's executed on.  It determines the 'leader', forms the JSON with the node's context and performs the action.
-##### [mesos_sched_drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/mesos_sched_drain.sh)
-#####[mesos_down.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/mesos_down.sh)
-#####[mesos_up.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/mesos_up.sh)
-#####[mesos_status.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/mesos_status.sh)
+##### [mesos_sched_drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/mesos_sched_drain.sh)
+#####[mesos_down.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/mesos_down.sh)
+#####[mesos_up.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/mesos_up.sh)
+#####[mesos_status.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/mesos_status.sh)
 
 #### Support scripts
 ##### Helpers
-###### [lock_helpers.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/lib/lock_helpers.sh)
- These bash helpers provide wrappers around the `etcd-locks` docker image.
-  They also establish an `exit` hook that provides exit chaining used extensively to clear iptables, free locks, free temp files, etc in case of unexpected exits.
-###### [drain_helpers.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/lib/drain_helpers.sh)
+###### [lock_helpers.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/lib/lock_helpers.sh)
+ These bash helpers provide wrappers around the [etcd-locks](https://github.com/adobe-platform/etcd-locks) docker image.
+  They also establish an `exit` hook that provides *on-exit* chaining mechanism used extensively to clear iptables, free locks, free temp files, etc in case of unexpected exits.
+###### [drain_helpers.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/lib/drain_helpers.sh)
   Contains script for draining tcp and docker instances.
 
-####[read_tcp6](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/lib/read_tcp6.sh)
+####[read_tcp6](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/lib/read_tcp6.sh)
 This script decodes established connections for docker instances running in bridged network mode.  Such connections are not reported by `netstat` as they are routed by iptables using `PREROUTING` and `FORWARDING` chains in the `nat` and `filter` tables respectively.
 
-To use this with docker, you get the pid and process tree of the image report via `docker inspect` then `cat /proc/$pid/net/tcp6` to this script.
-> drain obviously make heavy use of this to measure remaining connections
+In short,  read_tcp6 gets called by drain.sh following this scheme:
+- Retrieve the main docker instance pid
+```
+docker inspect -f '{{.State.Pid}}' dockerSHA
+```
+- Use the resulting pid to retrieve the process tree rooted by that pid
+- From that process tree, get the list of listening ip/ports associated 
 
-## Process
-This section gives an overview of important processes.
+> Note: drain.sh makes heavy use of this to measure remaining connections.
 
-### [skopos.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/skopos.sh)
-The main process mediates system reboots primarily due to CoreOS updates.
+## Process flow
+This section gives an overview of important components
+
+### [skopos.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/skopos.sh)
+Skopos.sh mediates system reboots primarily due to CoreOS update events.
 
 - If the current node holds the cluster-wide reboot lock on service startup:
   - Ensure zookeeper is up and healthy
@@ -244,22 +291,47 @@ The main process mediates system reboots primarily due to CoreOS updates.
      - By calling Mesos maintenance API `/maintenance/up`
   - Release cluster-wide reboot-lock
 - Wait for reboot trigger
-- On reboot trigger occurance
-   	- currently, the presence of the file `/var/lib/skopos/needs_reboot` 
+   	- Currently, the presence of the file `/var/lib/skopos/needs_reboot` is the trigger
 - wait forever for cluster-wide `reboot lock` for tier
-- invoke [drain script](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/drain.sh) with token `REBOOT`
+- on acquiring lock, invoke [drain script](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain.sh) with token `REBOOT`
 - on success, reboot *holding* drain lock
 
 > Note: it is *very* important that the node re-establish itself *after* reboot *before* unlock reboot.
 
-### [drain.sh](http://github.com/f4tq/ethos-systemd/tree/feature/drain-submission/v1/util/drain.sh) script
+![Skopos](https://git.corp.adobe.com/pages/fortescu/images/skopos-flow1.svg)
+
+<!--
+st=>start: Skopos start
+e=>end: Reboot
+op1=>operation: Acquire Reboot lock
+op2=>operation: Await Healthy Mesos
+op3=>operation: Release Reboot lock
+sub2=>operation: Sleep
+sub1=>subroutine: Invoke drain.sh
+cond=>condition: /var/lib/skopos/rebooting exist?
+cond2=>condition: /var/lib/skopos/need_reboot exist?
+cond3=>condition: success?
+io=>inputoutput: Can't get host lock
+io2=>inputoutput: Touch /var/lib/skopos/rebooting
+st->cond
+cond(yes,left)->op2
+op2->op3->cond2
+cond(no)->cond2
+cond2(yes)->op1->sub1
+cond2(no)->sub2->cond2
+sub1->cond3
+cond3(yes)->io2->e
+cond3(no)->op3
+-->
+
+### [drain.sh](http://git.corp.adobe.com/adobe-platform/ethos-systemd/tree/master/v1/util/drain.sh) script
 CLI with mulitple options available for standalone use.  It's primary callers are skopos.sh and booster-drain.sh.
 
 #### options
 
 ##### drain
 The primary option.  This script usually called by booster-drain.sh or skopos.sh.
-The *drain* takes optional value that which gets used as the host lock value by etcd-locks.  It is useful to use a verb to describe what called for drain.   drain values:
+The *drain* takes optional value that which gets used as the host lock value by [etcd-locks](https://github.com/adobe-platform/etcd-locks).  It is useful to use a verb to describe what called for drain.   drain values:
 - *DRAIN*
 The default.
 - *REBOOT*
@@ -298,9 +370,70 @@ Value passed by booster-drain.sh.  Ex. `drain.sh drain BOOSTER`
 Drain docker calls
 - unlock   *host lock*
 
+###### Fig. drain overview:
+![Skopos](https://git.corp.adobe.com/pages/fortescu/images/drain_overview.svg)
+
+<!--
+st=>start: drain.sh REBOOT
+e=>end: exit(0)
+fail=>end: exit(-1)
+op1=>operation: Acquire host lock
+io1=>subroutine: drain_tcp
+io2=>subroutine: drain_docker
+io3=>inputoutput: Release host lock
+io4=>inputoutput: Sched Mesos down(API)
+cond1=>condition: success?
+cond2=>condition: Mesos API > 0.27
+st->op1->cond1
+cond1(yes)->cond2
+cond1(no)->fail
+cond2(no)->io1->io2->io3->e
+cond2(yes)->io4->io1
+-->
+
+###### Fig. drain_tcp:
+![Skopos](https://git.corp.adobe.com/pages/fortescu/images/drain_tcp.svg)
+
+<!--
+st=>start: drain tcp start
+e=>end: Done
+cond1=>condition: Total connections=0?
+cond2=>condition: timeout?
+io1=>inputoutput: Determine docker instances
+io2=>inputoutput: Determine process/listener tree
+io3=>inputoutput: Sleep
+op4=>operation: SYN Block listeners
+st->io1->io2
+io2->op4->cond1
+cond1(no,left)->cond2
+cond1(yes)->e
+cond2(yes)->e
+cond2(no)->cond1
+-->
+##### drain docker:
+![drain_docker](https://git.corp.adobe.com/pages/fortescu/images/drain_docker.svg)
+
+<!--
+st=>start: drain tcp start
+e=>end: Done
+cond1=>condition: Total connections=0 or timeout?
+cond2=>condition: timeout exceeded?
+io1=>inputoutput: Determine docker instances
+op1=>operation: count active instances
+op2=>operation: send SIGTERM to instances
+op3=>operation: send SIGKILL to instances
+op4=>operation: Sleep
+cond1=>condition: Alive > 0 ?
+st->io1->op2
+op2->op1->cond1
+cond1(no)->e
+cond1(yes)->cond2
+cond2(no)->op1
+cond2(yes)->op3->e
+-->
 
 ##### show_fw_rules
-Shows the firewall rules that *will* be used during draining.
+**Shows** the firewall rules that **will** be used during draining.
 ###### Example
 ```
 core@ip-172-16-26-239 ~ $ sudo ethos-systemd/v1/util/drain.sh show_fw_rules
@@ -334,12 +467,65 @@ core@ip-172-16-26-239 ~ $ sudo ethos-systemd/v1/util/drain.sh connections
 
 
 ## Support
-In order to show the draining, there must be load.  To create that load:
+In order to show the draining, there must be load.  To create that load, a supporting golang project - [dcos-tests](https://github.com/f4tq/dcos-tests) - was written for testing skopos.  
 ### [dcos-tests](https://github.com/f4tq/dcos-tests)
 http server project whose api accepts urls that sleep for the user provide period to simulate long running processes.
-It also accepts a time period where it optionally sleeps after receiving `SIGTERM` after closing it's listener.   Existing connections remain in process and are allowed to finish if the period is long enough.
+It also accepts a time period whereby it optionally sleeps after receiving `SIGTERM`  - after closing it's listener - to support testing **drain_docker**.   Existing connections remain in process and are allowed to finish if the period is long enough.
+[dcos-tests](https://github.com/f4tq/dcos-tests) was deployed on 3 nodes with marathon constraint `[[ hostname UNIQUE ]]` via flight-director and capcom.
+Prerequisites:
+- start an ssh tunnel to your jump host with a SOCKS tunnel set
+```
+# ssh -o DynamicForward=localhost:1200 -N jumphost &
+```
+- start an http proxy capable of using the SOCKS tunnel to forward requests
+	- http proxy `polipo` used here:
+```
+sudo polipo socksParentProxy=localhost:1200 diskCacheRoot=/dev/null
+```  
+Here are the flight-director json stanza used to create the app in flight director:
+- Create the App
+> Note: by default,  `polipo` uses port 8123 for proxy.  curl obeys the environment variable `http_proxy`.
+
+```
+http_proxy=localhost:8123 curl -v -XPOST -d@/home/fortescu/dcos/application-fd.json -H "Content-Type: application/json" -u admin:password -v http://10.74.131.170:2001/v2/applications
+```
+
+- Create the image
+```
+$ curl -v -XPOST -d@/home/fortescu/dcos/dcos-tests-v2-fd.json -H "Content-Type: application/json" -u admin:password -v http://10.74.131.170:2001/v2/images
+```
+where `dcos-tests-v2-fd.json` contains:
+```
+{
+  "data": {
+    "attributes": {
+      "name": "LoadTestA",
+      "application-id": "LoadTest",
+      "container-image": "",
+      "num-containers": 3,
+      "exposed-ports": "8080",
+      "proxy-port-mapping": "10005:8080",
+      "cpus": 0.5,
+      "memory": 256,
+      "command": "/usr/local/bin/dcos-tests --debug --term-wait 20 --http-addr :8080",
+      "job-type": "LONG_RUNNING",
+      "scm-repo": "admin",
+      "constraints": [
+        [
+          "hostname",
+          "UNIQUE"
+        ]
+      ],
+      "health-check-path": "/ping"
+    },
+    "type": "ImageDefinition"
+  }
+}
+```
+
 ### locust
-locust is stood up in master-slave mode on the control tiers.
+A 3 node locust was provisioned (master-slave mode) in the Ethos bastion tier to test Skopos.  It .  Skopos was tested with up to 3000 users sending 500 req/sec when a reboot was triggered without dropping a connection.
+
 #### [test-drain.py](https://github.com/adobe-platform/skopos/blob/fleet/locust-1/test_drain.py)
 #### [ansible driven build/start/stop](https://git.corp.adobe.com/fortescu/Mesos4Dexi/blob/master/drain_test.yml#L244)
 
@@ -375,7 +561,54 @@ ansible coreos_workers -i $INVENTORY  -m raw -a 'bash -c "journalctl -u update-o
 ```
 # Running
 Ansible makes that task of managing an ethos cluster much easier. Controlling the drain process, whether due to updates requiring a reboot or booster drain for scale down, are no exception.
+
+## Configuring Ansible
+- Install Ansible
+- The following examples rely on an ansible inventory configured [here](https://git.corp.adobe.com/fortescu/Mesos4Dexi/tree/master/inventory-ethos-f4tq) for the cluster named `f4tq`.  Use `sed` to adjust the inventory tags for your cluster.
+- use `./ec2.py --refresh-cache` to update your ansible cache
+- use `./ec2.ini` to configure boto/ansible
+- Ansible relies on a properly configured ssh config file to work seemlessly.  For cluster `f4tq`,  taken from `osx:~/.ssh/config`:
+```
+-- snip --
+Host ethos-f4tq 10.74.131.21 
+     # no proxy
+     Hostname 54.197.222.207
+     ProxyCommand none 
+     Compression yes
+     ForwardAgent yes
+     StrictHostKeyChecking no
+     UserKnownHostsFile /dev/null
+     ServerAliveInterval 50
+     DynamicForward 1200
+     User core 
+Host 10.74.131.* ip-10-74-131-*.ec2.internal
+     Compression yes
+     ForwardAgent yes
+     StrictHostKeyChecking no
+     UserKnownHostsFile /dev/null
+     ServerAliveInterval 50
+     User core
+     ProxyCommand ~/.ssh/proxy.sh localhost:1200 %h %p
+-- snip --
+```
+> Note: [see this gist for proxy.sh](https://git.corp.adobe.com/gist/fortescu/f77a089fce45e4b20b786e3422a118c1)
+
+## Want python in on your tier?
+- Install the playbook [defunctzombie.coreos-bootstrap](https://github.com/defunctzombie/ansible-coreos-bootstrap)
+```
+sudo ansible-galaxy install defunctzombie.coreos-bootstrap
+```
+- Get [coreos_ansiblize.yml]( https://git.corp.adobe.com/fortescu/Mesos4Dexi/blob/master/coresos_ansiblize.yml)
+- Use the ssh/inventory above.
+### Example
+Now you can use standard ansible modules.
+
+####Put an ssh key on all tiers, all nodes
+```
+$ ansible coreos -i $INVENTORY  -m authorized_key -a 'key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvsf04kNxTClExmZ1R9X5Vqv7dhnB2C8QByqdw1KyS0iLQn fortescu@fortescu-osx"  user="core"' 
+```
 ## Kick of an orderly (drained) worker tier reboot
+Runs only on the etcd leader.
 ```
 fortescu@vagrant $ ansible coreos_control -i $INVENTORY  -m raw -a 'bash -c "LOCALIP=$(curl -sS http://169.254.169.254/latest/meta-data/local-ipv4);  ( etcdctl member list  | grep \$LOCALIP | grep -q isLeader=true ) && ethos-systemd/v1/util/launch_workers_reboot.sh" ' -s
 ```
@@ -427,4 +660,5 @@ Sep 09 05:45:54 ip-10-74-131-165.ec2.internal skopos.sh[316]: [1473399954][/home
 
 
 >
-> Written with [StackEdit](https://stackedit.io/).
+> Written with [StackEdit](https://stackedit.io/). 
+> Get a table of contents when viewed with StackEdit!
