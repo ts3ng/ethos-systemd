@@ -17,7 +17,7 @@ etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secr
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.5.0-0.1.20160824153434.ubuntu1404-mesos-1.0.0"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:8e05dddcb45f70258de4400d22fcbab9afb830f0"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:cb601b3cd0b78efea599dde6ca54175fb9701355"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v1.3.0"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:1.0.1-2.0.93.ubuntu1404"
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"

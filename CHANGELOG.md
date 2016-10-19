@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### 2016-10-30
 * Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
 
@@ -18,6 +19,9 @@
 
 ### 2016-10-20
 * added LVC support to splunk units. set new etcd values /splunk/config/cloudops/hvc-endpoint and /splunk/config/cloudops/lvc-endpoint instead of /splunk/config/cloudops/forward-server-list in your secrets file.
+
+### 2016-10-19
+* Update flight director to expose `/v2/deployments/{id}/files` endpoint to Jenkins for better debugging
 
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
