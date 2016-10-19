@@ -15,7 +15,7 @@ Restart=always
 RestartSec=20
 TimeoutStartSec=0
 
-ExecStartPre=/usr/bin/systemctl is-active update-os.service
+ExecStartPre=/usr/bin/systemctl is-active update-os.timer
 # condition / assertion options here for some reason do not prevent the
 # ExecStart from spinning up and mounting / creating .dockercfg/ as a dir
 ExecStartPre=/usr/bin/bash -c "if [ ! -f /home/core/.dockercfg ]; then exit 1; fi"
