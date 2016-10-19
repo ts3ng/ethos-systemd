@@ -1,6 +1,10 @@
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
+### 2016-10-18
+* Added support for Splunk low-/high-volume index tokens
+* Updated docker-fluentd image to 1.0.4
+
 ### 2016-10-12
 * Added 2 environment variables to booster fleet
 
