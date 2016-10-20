@@ -82,6 +82,9 @@ fi
 
 if [ "$SPLUNK_ENABLE_CLOUDOPS_FORWARDER" == "1" ]; then
 #generate certs
+if [ "$SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST" == "" ]; then
+        SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/cloudops/forward-server-list)
+fi
 cat << EOF > /$SPLUNK_DIR/cloudopsCA.$SPLUNK_CLOUDOPS_ROOTCA_FORMAT
 $(etcd-get /splunk/config/cloudops/ca-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
