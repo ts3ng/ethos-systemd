@@ -5,6 +5,9 @@
 * Added support for Splunk low-/high-volume index tokens
 * Updated docker-fluentd image to 1.0.4
 
+### 2016-10-13
+* added LVC support to splunk units.
+
 ### 2016-10-12
 * Added 2 environment variables to booster fleet
 
