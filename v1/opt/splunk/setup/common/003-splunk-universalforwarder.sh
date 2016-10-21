@@ -6,7 +6,7 @@ SPLUNK_DIR="/opt/splunk/etc/system/local"
 SPLUNK_ENABLE_SECOPS_FORWARDER=$(etcd-get /splunk/config/secops/enable-forwarder)
 SPLUNK_ENABLE_CLOUDOPS_FORWARDER=$(etcd-get /splunk/config/cloudops/enable-forwarder)
 SPLUNK_FORWARD_SECOPS_SERVER_LIST=$(etcd-get /splunk/config/secops/forward-server-list)
-SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/cloudops/forward-server-list)
+SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/cloudops/hvc-endpoint)
 SPLUNK_SECOPS_SSLPASSWORD=$(etcd-get /splunk/config/secops/sslpassword)
 SPLUNK_CLOUDOPS_SSLPASSWORD=$(etcd-get /splunk/config/cloudops/sslpassword)
 SPLUNK_SECOPS_INDEX=$(etcd-get /splunk/config/secops/index)
@@ -82,6 +82,9 @@ fi
 
 if [ "$SPLUNK_ENABLE_CLOUDOPS_FORWARDER" == "1" ]; then
 #generate certs
+if [ "$SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST" == "" ]; then
+        SPLUNK_FORWARD_CLOUDOPS_SERVER_LIST=$(etcd-get /splunk/config/cloudops/forward-server-list)
+fi
 cat << EOF > /$SPLUNK_DIR/cloudopsCA.$SPLUNK_CLOUDOPS_ROOTCA_FORMAT
 $(etcd-get /splunk/config/cloudops/ca-cert | awk '{gsub(/\\n/,"\n")}1')
 EOF
