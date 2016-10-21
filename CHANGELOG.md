@@ -1,3 +1,6 @@
+### 2016-10-21
+* Updated to [booster v0.5](https://github.com/adobe-platform/booster/blob/master/CHANGELOG.md#v05)
+
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
