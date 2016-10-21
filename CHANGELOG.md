@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 ### 2016-10-21
 * Update aqua agent service to add docker kill aqua-launcher before starting container
+=======
+### 2016-10-20
+* added LVC support to splunk units. set new etcd values /splunk/config/cloudops/hvc-endpoint and /splunk/config/cloudops/lvc-endpoint instead of /splunk/config/cloudops/forward-server-list in your secrets file.
+>>>>>>> 8d64f95ab1733d22b9370f1442893737e93fcf9c
 
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
@@ -7,9 +12,6 @@
 ### 2016-10-18
 * Added support for Splunk low-/high-volume index tokens
 * Updated docker-fluentd image to 1.0.4
-
-### 2016-10-13
-* added LVC support to splunk units.
 
 ### 2016-10-12
 * Added 2 environment variables to booster fleet
