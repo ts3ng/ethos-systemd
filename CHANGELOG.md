@@ -1,3 +1,6 @@
+### 2016-10-21
+* Update aqua agent service to add docker kill aqua-launcher before starting container
+
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
