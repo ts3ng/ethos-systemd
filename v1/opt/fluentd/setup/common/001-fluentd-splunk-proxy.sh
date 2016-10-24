@@ -3,6 +3,10 @@ source /etc/environment
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../../lib/helpers.sh
 
+if [ "${NODE_ROLE}" != "worker" ]; then
+    exit 0
+fi
+
 SPLUNK_ENABLE_FLUENTD_PROXY=$(etcd-get /splunk/config/heavyforwarder/fluentd-proxy)
 LOGGING_ELB=$(etcd-get /environment/LOGGING_ELB)
 SPLUNK_HEAVYFORWARDER_PROXY_PORT=$(etcd-get /splunk/config/heavyforwarder/proxy-port)
