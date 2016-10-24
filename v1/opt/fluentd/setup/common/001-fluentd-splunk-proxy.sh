@@ -28,6 +28,7 @@ if [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "1" ]; then
                 SPLUNK_HEC_ENDPOINT="http://$SPLUNK_HEC_ENDPOINT:$SPLUNK_HEAVYFORWARDER_PROXY_PORT/services/collector"
         fi
         etcd-set /logging/config/fluentd-httpext-splunk-url $SPLUNK_HEC_ENDPOINT
+        etcd-set /logging/config/fluentd-httpext-use-ssl "false"
 fi
 
 
