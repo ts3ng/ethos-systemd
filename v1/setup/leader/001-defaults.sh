@@ -26,7 +26,7 @@ etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
 etcd-set /images/booster                "index.docker.io/behance/booster:0.5"
 etcd-set /images/booster-sidekick       "index.docker.io/behance/booster-sidekick:0.2"
 
-etcd-set /images/capcom                 "index.docker.io/behance/capcom:3ddcfe360a95adcf97d4e9f3a98f9e59057e55c6"
+etcd-set /images/capcom                 "index.docker.io/behance/capcom:bossjones"
 etcd-set /images/proxy                  "index.docker.io/nginx:1.9.5"
 etcd-set /images/control-proxy          "index.docker.io/behance/apigateway:v0.0.2"
 
