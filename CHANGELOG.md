@@ -1,3 +1,6 @@
+### 2016-10-24
+* Update Mesos master/slave default image values due to Docker image tag renaming
+
 ### 2016-10-21
 * Updated to [booster v0.5](https://github.com/adobe-platform/booster/blob/master/CHANGELOG.md#v05)
 * Update aqua agent service to add docker kill aqua-launcher before starting container
