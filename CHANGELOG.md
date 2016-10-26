@@ -1,3 +1,6 @@
+### 2016-10-25
+* Version bump for fluentd container
+
 ### 2016-10-24
 * Update Mesos master/slave default image values due to Docker image tag renaming
 
