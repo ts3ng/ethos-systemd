@@ -1,12 +1,22 @@
+### 2016-10-25
+* Version bump for fluentd container
+
+### 2016-10-24
+* Update Mesos master/slave default image values due to Docker image tag renaming
+
+### 2016-10-21
+* Updated to [booster v0.5](https://github.com/adobe-platform/booster/blob/master/CHANGELOG.md#v05)
+* Update aqua agent service to add docker kill aqua-launcher before starting container
+
+### 2016-10-20
+* added LVC support to splunk units. set new etcd values /splunk/config/cloudops/hvc-endpoint and /splunk/config/cloudops/lvc-endpoint instead of /splunk/config/cloudops/forward-server-list in your secrets file.
+
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
 
 ### 2016-10-18
 * Added support for Splunk low-/high-volume index tokens
 * Updated docker-fluentd image to 1.0.4
-
-### 2016-10-13
-* added LVC support to splunk units.
 
 ### 2016-10-12
 * Added 2 environment variables to booster fleet

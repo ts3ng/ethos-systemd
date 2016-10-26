@@ -43,5 +43,7 @@ FLUENTD_MONITOR_PORT=$(etcdctl get /logging/config/fluentd-monitor-port)
   -e FLUENTD_HTTPEXT_USERNAME=$(etcdctl get /logging/config/fluentd-httpext-username) \
   -e FLUENTD_HTTPEXT_PASSWORD=$(etcdctl get /logging/config/fluentd-httpext-password) \
   -e FLUENTD_HTTPEXT_SPLUNK_HEC_TOKEN="$(etcdctl get /logging/config/fluentd-httpext-splunk-hec-token)" \
+  -e FLUENTD_HTTPEXT_SPLUNK_HEC_LVC_TOKEN="$(etcdctl get /logging/config/fluentd-httpext-splunk-hec-lvc-token)" \
+  -e FLUENTD_HTTPEXT_SPLUNK_HEC_HVC_TOKEN="$(etcdctl get /logging/config/fluentd-httpext-splunk-hec-hvc-token)" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   $IMAGE

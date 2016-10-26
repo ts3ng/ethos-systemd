@@ -3,6 +3,10 @@ source /etc/environment
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../../lib/helpers.sh
 
+if [ "${NODE_ROLE}" != "worker" ]; then
+    exit 0
+fi
+
 SPLUNK_ENABLE_FLUENTD_PROXY=$(etcd-get /splunk/config/heavyforwarder/fluentd-proxy)
 LOGGING_ELB=$(etcd-get /environment/LOGGING_ELB)
 SPLUNK_HEAVYFORWARDER_PROXY_PORT=$(etcd-get /splunk/config/heavyforwarder/proxy-port)
@@ -24,6 +28,7 @@ if [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "1" ]; then
                 SPLUNK_HEC_ENDPOINT="http://$SPLUNK_HEC_ENDPOINT:$SPLUNK_HEAVYFORWARDER_PROXY_PORT/services/collector"
         fi
         etcd-set /logging/config/fluentd-httpext-splunk-url $SPLUNK_HEC_ENDPOINT
+        etcd-set /logging/config/fluentd-httpext-use-ssl "false"
 fi
 
 
