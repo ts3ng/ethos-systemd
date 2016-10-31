@@ -1,3 +1,6 @@
+### 2016-10-31
+* Add default runtime profile with encryption of env variables
+
 ### 2016-10-25
 * Version bump for fluentd container
 
