@@ -40,17 +40,20 @@ mkdir -p $SPLUNK_DIR
 DEFAULTGROUP="splunkhvc"
 DEFAULTINDEX=$SPLUNK_CLOUDOPS_INDEX
 
+if [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "1" ]; then
+        DEFAULTGROUP="splunkhec"
+fi
 #formating tokens 
-if [ $SPLUNK_HEC_TOKEN == "" ]; then
+if [ "$SPLUNK_HEC_TOKEN" == "" ]; then
         SPLUNK_HEC_TOKEN=$(etcd-get /splunk/config/hec/token)
 fi
-if [ $SPLUNK_HEC_TOKEN == "" ] && [ $SPLUNK_HEC_HVC_TOKEN != "" ]; then
+if [ "$SPLUNK_HEC_TOKEN" == "" ] && [ "$SPLUNK_HEC_HVC_TOKEN" != "" ]; then
         SPLUNK_HEC_TOKEN=$SPLUNK_HEC_HVC_TOKEN
 fi
-if [ $SPLUNK_HEC_HVC_TOKEN == "" ] && [$SPLUNK_HEC_TOKEN != "" ]; then
+if [ "$SPLUNK_HEC_HVC_TOKEN" == "" ] && [ "$SPLUNK_HEC_TOKEN" != "" ]; then
         SPLUNK_HEC_HVC_TOKEN=$SPLUNK_HEC_TOKEN
 fi
-if [ $SPLUNK_HEC_LVC_TOKEN == "" ] && [$SPLUNK_HEC_TOKEN != "" ]; then
+if [ "$SPLUNK_HEC_LVC_TOKEN" == "" ] && [ "$SPLUNK_HEC_TOKEN" != "" ]; then
         SPLUNK_HEC_LVC_TOKEN=$SPLUNK_HEC_TOKEN
 fi
 if [[ $SPLUNK_HEC_TOKEN =~ ^Splunk ]]; then
@@ -105,7 +108,7 @@ cat << EOF >> /$SPLUNK_DIR/$1.conf
 disabled = 0
 enableSSL = 0
 port = $SPLUNK_HEAVYFORWARDER_PROXY_PORT
-outputGroup = $DEFAULTGROUP
+outputgroup = $DEFAULTGROUP
 EOF
 fi
 # enable customer logs from fluentd
@@ -114,19 +117,19 @@ cat << EOF >> /$SPLUNK_DIR/$1.conf
 
 [http://ethos-hvc]
 token = $SPLUNK_HEC_HVC_TOKEN
-outputGroup = splunkhvc
+outputgroup = splunkhvc
 disabled = 0
 EOF
-fi
 
 if [ "$SPLUNK_HEC_LVC_TOKEN" != "$SPLUNK_HEC_HVC_TOKEN" ]; then
 cat << EOF >> /$SPLUNK_DIR/$1.conf
 
 [http://ethos-lvc]
 token = $SPLUNK_HEC_LVC_TOKEN
-outputGroup = splunklvc
+outputgroup = splunklvc
 disabled = 0
 EOF
+fi
 fi
 #system log listener events from journald-splunk pipe
 if [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "1" ]; then
@@ -135,7 +138,7 @@ cat << EOF >> /$SPLUNK_DIR/$1.conf
 [http://system]
 token = $SPLUNK_HEAVYFORWARDER_SYSTEM_TOKEN
 index = $SPLUNK_CLOUDOPS_INDEX
-outputGroup = splunkhec
+outputgroup = splunkhec
 disabled = 0
 EOF
 fi
@@ -147,7 +150,8 @@ cat << EOF > /$SPLUNK_DIR/$1.conf
 defaultGroup = $DEFAULTGROUP
 EOF
 #generate cert auth log forwarding
-if [ "$SPLUNK_ENABLE_CLOUDOPS_FORWARDER" == "1" ] || [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "1" ]; then
+if [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "0" ]; then
+        if [ "$SPLUNK_ENABLE_CLOUDOPS_FORWARDER" == "1" ] || [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "1" ]; then
 cat << EOF >> /$SPLUNK_DIR/$1.conf
 
 [tcpout:splunkhvc]
@@ -162,15 +166,18 @@ sslCertPath = /opt/splunk/etc/system/local/cloudopsForwarder.$SPLUNK_CLOUDOPS_CE
 sslRootCAPath = /opt/splunk/etc/system/local/cloudopsCA.$SPLUNK_CLOUDOPS_ROOTCA_FORMAT
 sslPassword = $SPLUNK_CLOUDOPS_SSLPASSWORD
 EOF
+        fi
 fi
 #generate hec log forwarding
-if [ "$SPLUNK_ENABLE_HEC_FORWARDER" == "1" ] || [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "1" ]; then
+if [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "0" ]; then
+        if [ "$SPLUNK_ENABLE_HEC_FORWARDER" == "1" ] || [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "1" ]; then
 cat << EOF >> /$SPLUNK_DIR/$1.conf
 
 [tcpout:splunkhec]
 token = $SPLUNK_HEC_TOKEN
 server = $SPLUNK_HEC_ENDPOINT:443
 EOF
+        fi
 fi
         ;;
         transforms)

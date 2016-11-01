@@ -9,7 +9,6 @@ Environment="IMAGE=etcdctl get /images/splunk-heavyforwarder"
 Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
 User=core
 Restart=always
-TimeoutStartSec=0
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
 ExecStartPre=/usr/bin/bash -c \
 "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi && \
