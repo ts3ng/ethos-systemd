@@ -1,3 +1,6 @@
+### 2016-10-30
+* Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
+
 ### 2016-10-27
 * Update: Turn down verbosity of Chronos logs ( Dumping environment variables to sumologic, not good )
 * Update: proxy@.service correctly set `LimitMEMLOCK=infinity` and `LimitNOFILE=524288` inside of systemd unit.

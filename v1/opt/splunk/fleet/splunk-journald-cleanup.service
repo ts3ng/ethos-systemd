@@ -1,0 +1,13 @@
+[Unit]
+Description=Splunk Forwarder Cleanup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/systemctl is-active bootstrap
+ExecStartPre=/usr/bin/systemctl is-active splunk-journald
+ExecStart=/usr/bin/sudo bash /home/core/ethos-systemd/v1/util/splunk-forwarder-cleanup.sh
+
+[X-Fleet]
+Global=true
