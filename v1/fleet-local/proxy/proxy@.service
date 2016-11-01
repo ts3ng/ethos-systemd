@@ -9,14 +9,16 @@ User=core
 Restart=always
 RestartSec=5
 TimeoutStartSec=0
-Environment="IMAGE=etcdctl get /images/proxy"  
-Environment="PROXY=etcdctl get /capcom/config/proxy"  
+Environment="IMAGE=etcdctl get /images/proxy"
+Environment="PROXY=etcdctl get /capcom/config/proxy"
 Environment="CMD=etcdctl get /capcom/config/proxy-docker-command"
 
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/sudo /home/core/ethos-systemd/v1/util/ensure-proxy.sh
 ExecStartPre=-/usr/bin/docker kill proxy
 ExecStartPre=-/usr/bin/docker rm proxy
+LimitMEMLOCK=infinity
+LimitNOFILE=524288
 
 # NOTE: it's critical to source the etcdctl.sh file so that etcd connects to the correct cluster.
 ExecStart=/usr/bin/bash -c "source /etc/profile.d/etcdctl.sh && \
