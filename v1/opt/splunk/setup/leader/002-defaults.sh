@@ -10,6 +10,8 @@ etcd-set /splunk/config/label-sourcetype "source_type"
 etcd-set /splunk/config/label-volume "volume"
 etcd-set /splunk/config/heavyforwarder-endpoint "http://localhost:8089"
 etcd-set /splunk/config/heavyforwarder-auth "admin:changeme"
+etcd-set /splunk/config/heavyforwarder/restart 1
+etcd-set /splunk/config/heavyforwarder/restarthour 0
 etcd-set /splunk/config/logging-config/poller-frequency 10
 # secops defaults
 etcd-set /splunk/config/secops/enable-forwarder 0
@@ -47,6 +49,8 @@ etcd-set /splunk/config/heavyforwarder/default-port 9997
 etcd-set /splunk/config/heavyforwarder/proxy-port 9998
 etcd-set /splunk/config/universalforwarder/cloudops-port 1515
 etcd-set /splunk/config/universalforwarder/secops-port 1514
+etcd-set /splunk/config/universalforwarder/restart 1
+etcd-set /splunk/config/universalforwarder/restarthour 0
 # Log scrubbing variables
 etcd-set /splunk/config/syslog-scrub-regex "s/\(-e\ [^=]*\)=[^\ ]*/\1=****** /g"
 etcd-set /splunk/config/scrub-syslog 1

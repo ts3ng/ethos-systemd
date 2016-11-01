@@ -5,9 +5,8 @@ Wants=splunk-journald.service
 
 [Service]
 EnvironmentFile=/etc/splunk.env
-TimeoutStartSec=0
 Restart=always
-RestartSec=5s
+RestartSec=30s
 ExecStartPre=/usr/bin/systemctl is-active bootstrap
 ExecStartPre=/usr/bin/systemctl is-active splunk-journald
 ExecStart=/home/core/ethos-systemd/v1/util/journald-splunk-pipe.sh
