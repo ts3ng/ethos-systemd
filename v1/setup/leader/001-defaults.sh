@@ -26,7 +26,7 @@ etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
 etcd-set /images/booster                "index.docker.io/behance/booster:0.5"
 etcd-set /images/booster-sidekick       "index.docker.io/behance/booster-sidekick:0.2"
 
-etcd-set /images/capcom                 "index.docker.io/behance/capcom:3ddcfe360a95adcf97d4e9f3a98f9e59057e55c6"
+etcd-set /images/capcom                 "index.docker.io/behance/capcom:55472229a28c118a4bd1e3f98e44ed8fac24350c"
 etcd-set /images/proxy                  "index.docker.io/nginx:1.9.5"
 etcd-set /images/control-proxy          "index.docker.io/behance/apigateway:v0.0.2"
 
@@ -51,7 +51,7 @@ etcd-set /capcom/config/proxy                   nginx
 etcd-set /capcom/config/proxy-config-file       /etc/nginx/nginx.conf
 etcd-set /capcom/config/proxy-enabled           true
 etcd-set /capcom/config/proxy-restart-script    /restart_nginx_docker.sh
-etcd-set /capcom/config/proxy-timeout           60000
+etcd-set /capcom/config/proxy-timeout           65000
 etcd-set /capcom/config/proxy-docker-command    "nginx -g 'daemon off;'"
 etcd-set /capcom/config/ssl-cert-location       ""
 
