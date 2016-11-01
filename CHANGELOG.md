@@ -1,8 +1,8 @@
-### 2016-10-30
-* Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
-
 ### 2016-10-28
 * Removed optional environment variable from booster fleet
+
+### 2016-10-30
+* Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
 
 ### 2016-10-27
 * Update: Turn down verbosity of Chronos logs ( Dumping environment variables to sumologic, not good )

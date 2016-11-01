@@ -1,0 +1,13 @@
+[Unit]
+Description=Splunk Forwarder Cleanup
+After=docker.service
+Requires=docker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Timer]
+OnCalendar=daily
+
+[X-Fleet]
+Global=true
