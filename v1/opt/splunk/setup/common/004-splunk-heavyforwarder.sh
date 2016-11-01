@@ -108,7 +108,7 @@ cat << EOF >> /$SPLUNK_DIR/$1.conf
 disabled = 0
 enableSSL = 0
 port = $SPLUNK_HEAVYFORWARDER_PROXY_PORT
-outputGroup = $DEFAULTGROUP
+outputgroup = $DEFAULTGROUP
 EOF
 fi
 # enable customer logs from fluentd
@@ -117,7 +117,7 @@ cat << EOF >> /$SPLUNK_DIR/$1.conf
 
 [http://ethos-hvc]
 token = $SPLUNK_HEC_HVC_TOKEN
-outputGroup = splunkhvc
+outputgroup = splunkhvc
 disabled = 0
 EOF
 
