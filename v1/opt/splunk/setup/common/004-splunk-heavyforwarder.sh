@@ -40,6 +40,9 @@ mkdir -p $SPLUNK_DIR
 DEFAULTGROUP="splunkhvc"
 DEFAULTINDEX=$SPLUNK_CLOUDOPS_INDEX
 
+if [ "$SPLUNK_ENABLE_JOURNALD_PROXY" == "1" ]; then
+        DEFAULTGROUP="splunkhec"
+fi
 #formating tokens 
 if [ "$SPLUNK_HEC_TOKEN" == "" ]; then
         SPLUNK_HEC_TOKEN=$(etcd-get /splunk/config/hec/token)
