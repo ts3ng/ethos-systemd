@@ -1,6 +1,11 @@
 ### 2016-10-31
 * Add default runtime profile with encryption of env variables
 
+### 2016-11-02
+* Flight Director fixes for creating DB and Maratyjon reconciliation on start up
+* Sets Flight Director to use localhost for Mesos instead of buggy ELB
+* Removed optional environment variable from booster fleet
+
 ### 2016-10-30
 * Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
 
@@ -21,6 +26,9 @@
 
 ### 2016-10-20
 * added LVC support to splunk units. set new etcd values /splunk/config/cloudops/hvc-endpoint and /splunk/config/cloudops/lvc-endpoint instead of /splunk/config/cloudops/forward-server-list in your secrets file.
+
+### 2016-10-19
+* Update flight director to expose `/v2/deployments/{id}/files` endpoint to Jenkins for better debugging
 
 ### 2016-10-14
 * Remove image authorization and will re add after aqua separates image authorization with image scanning
