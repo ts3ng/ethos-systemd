@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ### 2016-11-02
 * Flight Director fixes for creating DB and Maratyjon reconciliation on start up
 * Sets Flight Director to use localhost for Mesos instead of buggy ELB
