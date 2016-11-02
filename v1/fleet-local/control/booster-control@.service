@@ -39,7 +39,6 @@ ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   -e BOOSTER_NODES=$(etcdctl ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
   -e BOOSTER_QUEUE_URI=http://localhost:2043 \
   -e BOOSTER_CLUSTER_SCALE_URI=http://localhost:2043 \
-  -e BOOSTER_NO_FD_AUTH=$(etcdctl get /booster/config/nofdauth) \
   -e BOOSTER_AIRLOCK_DEPLOY_TOKEN=$(etcdctl get /booster/config/airlock-deploy-token) \
   -e FD_URI=http://localhost:2001 \
   $($IMAGE)"
