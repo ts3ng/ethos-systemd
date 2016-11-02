@@ -14,6 +14,8 @@ JOURNALD_PROXY=`etcdctl get /splunk/config/heavyforwarder/journald-proxy`
 SYSTEM_TOKEN=`etcdctl get /splunk/config/heavyforwarder/system-token`
 LOG_SCRUB_REGEX=`etcdctl get /splunk/config/syslog-scrub-regex`
 ENABLE_SYSLOG_SCRUB=`etcdctl get /splunk/config/scrub-syslog`
+CLOUDOPS_HEC_ENDPOINT=`etcdctl get /logging/config/fluentd-httpext-splunk-url`
+SPLUNK_HEC_HVC_TOKEN=`etcdctl get /logging/config/fluentd-httpext-splunk-hec-hvc-token`
 
 if [ "$JOURNALD_PROXY" == "1" ]; then
         logger "Journald proxy enabled"
@@ -25,7 +27,7 @@ if [ "$JOURNALD_PROXY" == "1" ]; then
         if [ "$ENABLE_SYSLOG_SCRUB" == "0" ]; then
                 logger "syslog scrub disabled"
                 if [ "$ENABLE_CLOUDOPS" == "1" ]; then
-                        journalctl -f | while read line; do curl -s -k http://$LOGGING_ELB:$LOGGING_PORT/services/collector -H "Authorization: Splunk $SYSTEM_TOKEN" -d "{ \"event\": { \"log\": \"$line\", \"stack_name\": \"$STACK_NAME\", \"accountid\": \"$ACCOUNTID\", \"node_role\": \"$NODE_ROLE\", \"instanceid\": \"$INSTANCEID\", \"hostname\": \"$HOSTNAME\" }, \"index\": \"$LOGGING_INDEX\", \"sourcetype\": \"syslog\" }" > /dev/null; done &
+                        journalctl -f | while read line; do curl -s -k $CLOUDOPS_HEC_ENDPOINT -H "Authorization: $SPLUNK_HEC_HVC_TOKEN" -d "{ \"event\": { \"log\": \"$(echo $line | sed "s/\"/\\\\\"/g")\", \"stack_name\": \"$STACK_NAME\", \"accountid\": \"$ACCOUNTID\", \"node_role\": \"$NODE_ROLE\", \"instanceid\": \"$INSTANCEID\", \"hostname\": \"$HOSTNAME\" }, \"index\": \"$LOGGING_INDEX\", \"sourcetype\": \"syslog\" }" > /dev/null; done
                 fi
                 if [ "$ENABLE_SECOPS" == "1" ]; then
                         journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1514;done
@@ -33,7 +35,7 @@ if [ "$JOURNALD_PROXY" == "1" ]; then
         else
                 logger "syslog scrub enabled"
                 if [ "$ENABLE_CLOUDOPS" == "1" ]; then
-                        journalctl -f | while read line; do curl -s -k http://$LOGGING_ELB:$LOGGING_PORT/services/collector -H "Authorization: Splunk $SYSTEM_TOKEN" -d "{ \"event\": { \"log\": \"$(echo $line | sed "$LOG_SCRUB_REGEX")\", \"stack_name\": \"$STACK_NAME\", \"accountid\": \"$ACCOUNTID\", \"node_role\": \"$NODE_ROLE\", \"instanceid\": \"$INSTANCEID\", \"hostname\": \"$HOSTNAME\" }, \"index\": \"$LOGGING_INDEX\", \"sourcetype\": \"syslog\" }" > /dev/null; done &
+                        journalctl -f | while read line; do curl -s -k $CLOUDOPS_HEC_ENDPOINT -H "Authorization: $SPLUNK_HEC_HVC_TOKEN" -d "{ \"event\": { \"log\": \"$(echo $line | sed "$LOG_SCRUB_REGEX" | sed "s/\"/\\\\\"/g")\", \"stack_name\": \"$STACK_NAME\", \"accountid\": \"$ACCOUNTID\", \"node_role\": \"$NODE_ROLE\", \"instanceid\": \"$INSTANCEID\", \"hostname\": \"$HOSTNAME\" }, \"index\": \"$LOGGING_INDEX\", \"sourcetype\": \"syslog\" }" > /dev/null; done
                 fi
                 if [ "$ENABLE_SECOPS" == "1" ]; then
                         journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$(echo $line | sed "$LOG_SCRUB_REGEX")" | ncat --udp localhost 1514;done
@@ -44,7 +46,7 @@ else
         if [ "$ENABLE_SYSLOG_SCRUB" == "0" ]; then
                 logger "syslog scrub disabled"
                 if [ "$ENABLE_SECOPS" == "1" ]; then
-                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1514;done &
+                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1514;done
                 fi
                 if [ "$ENABLE_CLOUDOPS" == "1" ]; then
                         journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1515;done 
@@ -52,7 +54,7 @@ else
         else
                 logger "syslog scrub enabled \"$LOG_SCRUB_REGEX\""
                 if [ "$ENABLE_SECOPS" == "1" ]; then
-                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$(echo $line | sed "$LOG_SCRUB_REGEX")" | ncat --udp localhost 1514;done &
+                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$(echo $line | sed "$LOG_SCRUB_REGEX")" | ncat --udp localhost 1514;done
                 fi
                 if [ "$ENABLE_CLOUDOPS" == "1" ]; then
                         journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$(echo $line | sed "$LOG_SCRUB_REGEX")" | ncat --udp localhost 1515;done

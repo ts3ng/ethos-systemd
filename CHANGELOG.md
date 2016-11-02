@@ -6,6 +6,9 @@
 * Sets Flight Director to use localhost for Mesos instead of buggy ELB
 * Removed optional environment variable from booster fleet
 
+### 2016-11-1
+* Logging Changes to bypass internal Forwarder for UW1 system log configuration
+
 ### 2016-10-30
 * Logging fixes to for UW1, LVC token support, and Splunk Forwarder OOM issues
 
