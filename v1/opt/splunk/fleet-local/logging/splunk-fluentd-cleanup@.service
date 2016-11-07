@@ -10,4 +10,6 @@ ExecStartPre=/usr/bin/systemctl is-active splunk-journald
 ExecStart=/usr/bin/sudo bash /home/core/ethos-systemd/v1/util/splunk-forwarder-cleanup.sh heavyforwarder
 
 [X-Fleet]
-Global=true
+Global=false
+MachineMetadata=role=logging
+MachineMetadata=ip=%i
