@@ -1,3 +1,6 @@
+### 2016-11-04
+* Remove encryption of env variables from aqua
+
 ### 2016-10-31
 * Add default runtime profile with encryption of env variables
 
