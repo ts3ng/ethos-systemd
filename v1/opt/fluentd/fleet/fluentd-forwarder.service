@@ -13,7 +13,7 @@ RestartSec=10s
 
 # Get CoreOS environmental variables
 EnvironmentFile=/etc/environment
-Environment="IMAGE=etcdctl get /images/fluentd"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/fluentd"
 
 
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"

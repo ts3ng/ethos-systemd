@@ -3,7 +3,7 @@
 source /etc/environment
 
 
-SCALOCK_ADMIN_PASSWORD=$(etcdctl get /aqua/config/password)
+SCALOCK_ADMIN_PASSWORD=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/password)
 
 # Wait for web ui to be active
 WEB_ACTIVE=$(curl http://localhost:8083/api)

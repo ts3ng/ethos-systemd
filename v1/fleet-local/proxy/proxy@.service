@@ -9,9 +9,10 @@ User=core
 Restart=always
 RestartSec=5
 TimeoutStartSec=0
-Environment="IMAGE=etcdctl get /images/proxy"
-Environment="PROXY=etcdctl get /capcom/config/proxy"
-Environment="CMD=etcdctl get /capcom/config/proxy-docker-command"
+EnvironmentFile=/etc/environment
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/proxy"
+Environment="PROXY=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy"
+Environment="CMD=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy-docker-command"
 
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/sudo /home/core/ethos-systemd/v1/util/ensure-proxy.sh

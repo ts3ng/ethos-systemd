@@ -3,12 +3,13 @@ Description=Booster Sidekick @ %i
 Wants=booster-control@%i.service
 
 [Service]
+EnvironmentFile=/etc/environment
 TimeoutStartSec=0
 TimeoutStopSec=2
 RestartSec=60
 User=core
 Restart=on-failure
-Environment="IMAGE=etcdctl get /images/booster-sidekick"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/booster-sidekick"
 
 ExecStartPre=/usr/bin/sh -c "/usr/bin/docker pull $($IMAGE)"
 
@@ -16,10 +17,10 @@ ExecStartPre=-/usr/bin/docker kill booster-sidekick
 ExecStartPre=-/usr/bin/docker rm booster-sidekick
 ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   -e DB_DATABASE=booster \
-  -e DB_ENGINE=`etcdctl get /flight-director/config/db-engine` \
-  -e DB_PASSWORD=`etcdctl get /environment/RDSPASSWORD` \
-  -e DB_HOST=`etcdctl get /flight-director/config/db-path` \
-  -e DB_USERNAME=`etcdctl get /flight-director/config/db-username` \
+  -e DB_ENGINE=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-engine` \
+  -e DB_PASSWORD=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/RDSPASSWORD` \
+  -e DB_HOST=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-path` \
+  -e DB_USERNAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username` \
   -e PORT=2043 \
   -p 2043:2043 \
   --name booster-sidekick \

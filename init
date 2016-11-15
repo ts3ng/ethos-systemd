@@ -48,7 +48,7 @@ function leader-setup() {
 function follower-setup() {
   # Wait until etcd bootstrap value is set
   # This ensures that the etcd cluster is healthy and replicated on workers and proxy
-  while [[ $(etcdctl get /bootstrap.service/leader-status) != "finished" ]]
+  while [[ $(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /bootstrap.service/leader-status) != "finished" ]]
   do
     echo "-------Follower node, waiting for leader to finish script setup-------"
     sleep 10
@@ -83,7 +83,7 @@ function bastion-setup() {
 }
 
 # Check the bootstrap process to see if this node should run the leader scripts
-etcdctl get /bootstrap.service/leader-status
+/home/core/ethos-systemd/v1/lib/etcdauth.sh get /bootstrap.service/leader-status
 
 if [[ $? != 0 && ("$NODE_ROLE" = "control" || "$NODE_ROLE" = "bastion") ]]; then
   # The election process follows the following algorithm:
@@ -92,7 +92,7 @@ if [[ $? != 0 && ("$NODE_ROLE" = "control" || "$NODE_ROLE" = "bastion") ]]; then
   # 3. The first IP in the sorted list becomes the leader
   # 4. If the node's local IP matches, it begins running the leader scripts
   # 5. Others continue to wait for it to complete
-  LEADER_IP=$(etcdctl member list | awk '{print $4}' | cut -d':' -f 2 | cut -c3- | sort | head -n1)
+  LEADER_IP=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh member list | awk '{print $4}' | cut -d':' -f 2 | cut -c3- | sort | head -n1)
   LOCAL_IP=$(curl -sS http://169.254.169.254/latest/meta-data/local-ipv4)
 
   if [[ "$LEADER_IP" = "$LOCAL_IP" ]]; then

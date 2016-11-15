@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 LOCALPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $LOCALPATH
@@ -17,34 +17,34 @@ need_reboot(){
 
 log "Welcome to Skopos"
 if [ "${NODE_ROLE}" != "control" ]; then
-    
-    until (etcdctl --endpoints ${LOCKSMITHCTL_ENDPOINT} ls >/dev/null ) ; do
+
+    until (/home/core/ethos-systemd/v1/lib/etcdauth.sh --endpoints ${LOCKSMITHCTL_ENDPOINT} ls >/dev/null ) ; do
 	log "Waiting for etcd @ ${LOCKSMITHCTL_ENDPOINT}"
 	sleep 2;
     done
 fi
 
 if [ -e /var/lib/skopos/rebooting ]; then
-    
+
     health_url=""
     if [ "${NODE_ROLE}" == "control" ]; then
 	# WARNING: zk must be up before we allow other nodes to continue!
 	# DC/OS assumption: zk is running on control node.  Probably better way to detect
-	# 
+	#
 	# TODO: ethos
-	#    
+	#
 	#    - mesos/zk needs user/password
 	#    - docker image appropriate/nc brings netcat
 	#    - zk not in a zk systemd unit.
 	#
-	
+
         while [ "imok" != "$(echo "ruok" | ncat "${LOCAL_IP}" 2181)" ]; do
 	    log "Waiting for zookeeper"
 	    sleep 1
 	done
 	log "Zookeeper up ..."
 	# wait for etcd to show this node in the list
-	while [ 0 -eq $(etcdctl member list  | grep -c "${LOCAL_IP}" ) ];do
+	while [ 0 -eq $(/home/core/ethos-systemd/v1/lib/etcdauth.sh member list  | grep -c "${LOCAL_IP}" ) ];do
 	    log "Waiting for etcd"
 	    sleep 1
 	done
@@ -87,9 +87,9 @@ if [ -e /var/lib/skopos/rebooting ]; then
 	fi
 	unlock_host "REBOOT"
     fi
-    log "finished update process.  everything normal ..."    
+    log "finished update process.  everything normal ..."
 fi
-	
+
 timeout=10
 
 # To complete update, we must reboot.
@@ -101,11 +101,11 @@ while : ; do
 	lock_reboot
 	if [ $? -eq 0 ]; then
 	    #on_exit 'unlock_reboot'
-	    while : ; do 
+	    while : ; do
 		# we hold the tier lock for reboot
 		$LOCALPATH/drain.sh drain "REBOOT"
 		status=$?
-		if [ $status -eq 0 ] ; then 
+		if [ $status -eq 0 ] ; then
 		    log "skopos|drain succeeded. rebooting host_locks sez: $(host_state)"
 		    touch /var/lib/skopos/rebooting
 		    shutdown -r now
@@ -125,5 +125,5 @@ while : ; do
     sleep 20
 done
 
-   
-       
+
+

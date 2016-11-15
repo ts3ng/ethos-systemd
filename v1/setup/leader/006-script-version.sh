@@ -1,11 +1,13 @@
 #!/usr/bin/bash -x
 
+source /etc/environment
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source $DIR/../../lib/helpers.sh
 
 # This does not use the helper because it sometimes expects a 4 response
-etcdctl get /environment/SCRIPTS-FORK
+/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/SCRIPTS-FORK
 
 if [[ $? = 4 ]]; then
   # 4 == 404 - key not found

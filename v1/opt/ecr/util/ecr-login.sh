@@ -3,9 +3,9 @@
 source /etc/profile.d/etcdctl.sh
 source /etc/environment
 
-IMAGE=$(etcdctl get /images/ecr-login)
-REGISTRY_ACCOUNT=$(etcdctl get /ECR/config/registry-account)
-AWS_REGION=$(etcdctl get /ECR/config/region)
+IMAGE=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/ecr-login)
+REGISTRY_ACCOUNT=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /ECR/config/registry-account)
+AWS_REGION=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /ECR/config/region)
 DOCKER_CFG_LOCATION="/home/core/.dockercfg"
 
 # Remove old docker container

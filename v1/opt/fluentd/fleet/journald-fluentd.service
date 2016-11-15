@@ -13,8 +13,8 @@ RestartSec=30s
 
 # Get CoreOS environmental variables
 EnvironmentFile=/etc/environment
-Environment="FLUENTD_FORWARDER_PORT=etcdctl get /logging/config/fluentd-forwarder-port"
-Environment="JOURNALD_POS=etcdctl get /logging/config/journald-pos-file"
+Environment="FLUENTD_FORWARDER_PORT=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /logging/config/fluentd-forwarder-port"
+Environment="JOURNALD_POS=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /logging/config/journald-pos-file"
 
 #lets setup the position, and backfill the logs to fluentd if we need to
 ExecStartPre=/bin/bash -c " \

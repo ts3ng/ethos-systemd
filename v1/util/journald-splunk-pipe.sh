@@ -1,10 +1,19 @@
 #!/usr/bin/bash
-if [[ -f /etc/profile.d/etcdctl.sh ]];  then 
+if [[ -f /etc/profile.d/etcdctl.sh ]];  then
         source /etc/profile.d/etcdctl.sh
 fi
 
 source /etc/splunk.env
 # see what kind of forwarder is needed
+ENABLE_SECOPS=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/secops/enable-forwarder`
+ENABLE_CLOUDOPS=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/cloudops/enable-forwarder`
+LOGGING_PORT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/proxy-port`
+LOGGING_ELB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/LOGGING_ELB`
+LOGGING_INDEX=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/cloudops/index`
+JOURNALD_PROXY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/journald-proxy`
+SYSTEM_TOKEN=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/system-token`
+LOG_SCRUB_REGEX=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/syslog-scrub-regex`
+ENABLE_SYSLOG_SCRUB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/scrub-syslog`
 ENABLE_SECOPS=`etcdctl get /splunk/config/secops/enable-forwarder`
 ENABLE_CLOUDOPS=`etcdctl get /splunk/config/cloudops/enable-forwarder`
 LOGGING_PORT=`etcdctl get /splunk/config/heavyforwarder/proxy-port`
@@ -21,7 +30,7 @@ if [ "$JOURNALD_PROXY" == "1" ]; then
         logger "Journald proxy enabled"
         # wait for etcdctl value then proceed set on standup on logging tier
         if [ "$LOGGING_ELB" == "" ]; then
-                LOGGING_ELB=`etcdctl watch /environment/LOGGING_ELB`
+                LOGGING_ELB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh watch /environment/LOGGING_ELB`
         fi
         #System Logs to Http Event Collector and SplunkES over CertAuth
         if [ "$ENABLE_SYSLOG_SCRUB" == "0" ]; then
@@ -61,7 +70,7 @@ else
                         fi
                 fi
                 if [ "$ENABLE_CLOUDOPS" == "1" ]; then
-                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1515;done 
+                        journalctl -f | while read line; do echo "STACK_NAME=$STACK_NAME ACCOUNTID=$ACCOUNTID NODE_ROLE=$NODE_ROLE INSTANCEID=$INSTANCEID HOSTNAME=$HOSTNAME LOG=$line" | ncat --udp localhost 1515;done
                 fi
         else
                 logger "syslog scrub enabled \"$LOG_SCRUB_REGEX\""

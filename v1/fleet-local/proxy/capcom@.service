@@ -10,8 +10,8 @@ Restart=on-failure
 RestartSec=20
 TimeoutStartSec=0
 EnvironmentFile=/etc/environment
-Environment="IMAGE=etcdctl get /images/capcom"
-Environment="PROXY=etcdctl get /capcom/config/proxy"  
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/capcom"
+Environment="PROXY=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy"
 
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill capcom
@@ -27,20 +27,20 @@ ExecStart=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e LOG_APP_NAME=capcom \
     -e CP_PROXY_GROUP=$PROXY_GROUP \
-    -e CP_APPLICATIONS=$(etcdctl get /capcom/config/applications) \
-    -e CP_HOST=$(etcdctl get /capcom/config/host) \
-    -e CP_DB_PATH=$(etcdctl get /capcom/config/db-path) \
-    -e CP_KV_STORE_SERVER_ADDRESS=$(etcdctl get /capcom/config/kv-store-server-address) \
-    -e CP_KV_TTL=$(etcdctl get /capcom/config/kv-ttl) \
-    -e CP_LOG_LEVEL=$(etcdctl get /capcom/config/log-level) \
-    -e CP_LOG_LOCATION=$(etcdctl get /capcom/config/log-location) \
-    -e CP_PORT=$(etcdctl get /capcom/config/port) \
-    -e CP_PROXY=$(etcdctl get /capcom/config/proxy) \
-    -e CP_PROXY_CONFIG_FILE=$(etcdctl get /capcom/config/proxy-config-file) \
-    -e CP_PROXY_ENABLED=$(etcdctl get /capcom/config/proxy-enabled) \
-    -e CP_PROXY_RESTART_SCRIPT=$(etcdctl get /capcom/config/proxy-restart-script) \
-    -e CP_PROXY_TIMEOUT=$(etcdctl get /capcom/config/proxy-timeout) \
-    -e CP_SSL_CERT_LOCATION=$(etcdctl get /capcom/config/ssl-cert-location) \
+    -e CP_APPLICATIONS=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/applications) \
+    -e CP_HOST=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/host) \
+    -e CP_DB_PATH=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/db-path) \
+    -e CP_KV_STORE_SERVER_ADDRESS=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/kv-store-server-address) \
+    -e CP_KV_TTL=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/kv-ttl) \
+    -e CP_LOG_LEVEL=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/log-level) \
+    -e CP_LOG_LOCATION=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/log-location) \
+    -e CP_PORT=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/port) \
+    -e CP_PROXY=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy) \
+    -e CP_PROXY_CONFIG_FILE=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy-config-file) \
+    -e CP_PROXY_ENABLED=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy-enabled) \
+    -e CP_PROXY_RESTART_SCRIPT=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy-restart-script) \
+    -e CP_PROXY_TIMEOUT=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy-timeout) \
+    -e CP_SSL_CERT_LOCATION=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/ssl-cert-location) \
     $($IMAGE)"
 
 ExecStop=-/usr/bin/docker stop capcom

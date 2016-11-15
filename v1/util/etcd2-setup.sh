@@ -1,5 +1,7 @@
 #!/usr/bin/bash -x
 
+source /etc/environment
+
 # NOTE: this needs to be run with sudo privileges
 # $1 must be the SCRIPTDIR; $2 must be the ethos-systemd version
 
@@ -27,7 +29,7 @@ systemctl start etcd-peers
 
 echo "-------Waiting for etcd2 to start-------"
 
-while [[ $(etcdctl cluster-health|grep unhealthy) || $(etcdctl member list | wc -l) -lt $CONTROL_CLUSTER_SIZE ]]
+while [[ $(/home/core/ethos-systemd/v1/lib/etcdauth.sh cluster-health|grep unhealthy) || $(/home/core/ethos-systemd/v1/lib/etcdauth.sh member list | wc -l) -lt $CONTROL_CLUSTER_SIZE ]]
 do
   sleep 8
 done

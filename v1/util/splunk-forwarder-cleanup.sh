@@ -8,11 +8,11 @@ source /etc/environment
 # Note: script executes at midnight UTC based on splunk-journald-cleanup.timer
 ###
 REGION=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
-RESTART_HOUR=`etcdctl get /splunk/config/univeralsforwarder/restarthour`
-ENABLE_RESTART=`etcdctl get /splunk/config/universalforwarder/restart`
+RESTART_HOUR=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/univeralsforwarder/restarthour`
+ENABLE_RESTART=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/universalforwarder/restart`
 if [ "$1" == "heavyforwarder" ]; then
-        RESTART_HOUR=`etcdctl get /splunk/config/heavyforwarder/restarthour`
-        ENABLE_RESTART=`etcdctl get /splunk/config/heavyforwarder/restart`
+        RESTART_HOUR=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/restarthour`
+        ENABLE_RESTART=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/restart`
 fi
 
 if [ "$ENABLE_RESTART" == "0" ]; then
@@ -20,11 +20,11 @@ if [ "$ENABLE_RESTART" == "0" ]; then
 fi
 
 ###
-# 
+#
 ###
 hour_to_sec ()
 {
-        echo "$(($1*3600))" 
+        echo "$(($1*3600))"
 }
 
 ###
@@ -42,7 +42,7 @@ adj_time ()
 }
 TZCHECK=`/usr/bin/timedatectl | grep "Local time:"`
 if [[ $TZCHECK  =~ UTC ]]; then
-        DELAY=0 
+        DELAY=0
         UTC_RESTART_TIME=$RESTART_HOUR
         #set utc time based on region
         if [[ $REGION =~ ^us ]]; then

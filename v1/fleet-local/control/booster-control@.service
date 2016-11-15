@@ -3,17 +3,18 @@ Description=Booster Control @ %i
 Wants=mesos-master@%i.service
 
 [Service]
+EnvironmentFile=/etc/environment
 TimeoutStartSec=0
 TimeoutStopSec=2
 RestartSec=60
 User=core
 Restart=on-failure
-Environment="IMAGE=etcdctl get /images/booster"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/booster"
 
 ExecStartPre=/usr/bin/sh -c "/usr/bin/docker pull $($IMAGE)"
 
 # mkdir so `etcdctl ls /booster/nodes` below doesn't fail
-ExecStartPre=-/usr/bin/sh -c "etcdctl mkdir /booster/nodes"
+ExecStartPre=-/usr/bin/sh -c "/home/core/ethos-systemd/v1/lib/etcdauth.sh mkdir /booster/nodes"
 
 # Set our internal hostname minus .ec2.internal so
 # ip-123.456.789.123.ec2.internal becomes ip-123.456.789.123 which is what
@@ -22,24 +23,24 @@ ExecStartPre=-/usr/bin/sh -c "etcdctl mkdir /booster/nodes"
 # This is only done for control tier nodes because they're expected to stick
 # around and epmd will create a full mesh without explicity registering worker
 # nodes
-ExecStartPre=/usr/bin/sh -c "etcdctl set /booster/nodes/$(echo %H | cut -d'.' --complement -s -f2-) true"
+ExecStartPre=/usr/bin/sh -c "/home/core/ethos-systemd/v1/lib/etcdauth.sh set /booster/nodes/$(echo %H | cut -d'.' --complement -s -f2-) true"
 
 ExecStartPre=-/usr/bin/docker kill booster
 ExecStartPre=-/usr/bin/docker rm booster
 ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   --name booster \
   --net=host \
-  -e BOOSTER_NO_PERSISTENCE=$(etcdctl get /booster/config/nopersistence) \
-  -e BOOSTER_DB_HOST=$(etcdctl get /flight-director/config/db-path | cut -d: -f1) \
-  -e BOOSTER_DB_USER=$(etcdctl get /flight-director/config/db-username) \
-  -e BOOSTER_DB_PASSWORD=$(etcdctl get /environment/RDSPASSWORD) \
-  -e BOOSTER_STATSD_ADDITIONAL_TAGS=$(etcdctl get /environment/STACK_NAME) \
+  -e BOOSTER_NO_PERSISTENCE=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/nopersistence) \
+  -e BOOSTER_DB_HOST=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-path | cut -d: -f1) \
+  -e BOOSTER_DB_USER=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username) \
+  -e BOOSTER_DB_PASSWORD=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/RDSPASSWORD) \
+  -e BOOSTER_STATSD_ADDITIONAL_TAGS=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/STACK_NAME) \
   -e BOOSTER_DB_DATABASE=booster \
   -e BOOSTER_ROLES=control_tier \
-  -e BOOSTER_NODES=$(etcdctl ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
+  -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
   -e BOOSTER_QUEUE_URI=http://localhost:2043 \
   -e BOOSTER_CLUSTER_SCALE_URI=http://localhost:2043 \
-  -e BOOSTER_AIRLOCK_DEPLOY_TOKEN=$(etcdctl get /booster/config/airlock-deploy-token) \
+  -e BOOSTER_AIRLOCK_DEPLOY_TOKEN=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/airlock-deploy-token) \
   -e FD_URI=http://localhost:2001 \
   $($IMAGE)"
 

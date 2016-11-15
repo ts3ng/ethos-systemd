@@ -14,7 +14,7 @@ ExecStartPre=/usr/bin/systemctl is-active update-os.timer
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh"
 
 ExecStart=/usr/bin/bash -c "source /etc/profile.d/etcdctl.sh && \
-if [[ \"$(etcdctl get /environment/services |grep sumologic)\" != *sumologic* ]]; then sudo /home/core/ethos-systemd/v1/util/selinux.sh;fi"
+if [[ \"$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/services |grep sumologic)\" != *sumologic* ]]; then sudo /home/core/ethos-systemd/v1/util/selinux.sh;fi"
 
 
 [X-Fleet]

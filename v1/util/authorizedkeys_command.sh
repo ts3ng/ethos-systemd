@@ -1,15 +1,17 @@
 #!/bin/bash -x
 
+source /etc/environment
+
 # Source the etcd
 if [ -f /etc/profile.d/etcdctl.sh ]; then
   source /etc/profile.d/etcdctl.sh;
 fi
 
-ROLE_NAME="$(etcdctl get /klam-ssh/config/role-name)"
-ENCRYPTION_ID="$(etcdctl get /klam-ssh/config/encryption-id)"
-ENCRYPTION_KEY="$(etcdctl get /klam-ssh/config/encryption-key)"
-KEY_LOCATION_PREFIX="$(etcdctl get /klam-ssh/config/key-location-prefix)"
-IMAGE="$(etcdctl get /images/klam-ssh)"
+ROLE_NAME="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /klam-ssh/config/role-name)"
+ENCRYPTION_ID="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /klam-ssh/config/encryption-id)"
+ENCRYPTION_KEY="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /klam-ssh/config/encryption-key)"
+KEY_LOCATION_PREFIX="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /klam-ssh/config/key-location-prefix)"
+IMAGE="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/klam-ssh)"
 
 echo "Running authorizedkeys_command for $1" | systemd-cat -p info -t klam-ssh
 

@@ -5,11 +5,11 @@ Description=Datadog Agent for Ethos logging host
 After=docker.service bootstrap.service
 
 [Service]
+EnvironmentFile=/etc/environment
 # CONTROL_ELB should be set in etcd
 # It should be run on all mesos slave nodes (worker tier nodes)
 # Look at adobeplatform/ethos-dd-agent for what ports those 3 should be running on
-Environment="IMAGE=etcdctl get /images/ethos-dd-agent"
-EnvironmentFile=/etc/environment
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/ethos-dd-agent"
 User=core
 Restart=always
 TimeoutStartSec=0
@@ -22,7 +22,7 @@ ExecStart=/usr/bin/bash -c \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /proc/:/host/proc/:ro \
 -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
--e API_KEY=`etcdctl get /datadog/config/api-key` \
+-e API_KEY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /datadog/config/api-key` \
 -e HOST_IP=`hostname -i` \
 -e STACK_NAME=$STACK_NAME \
 -e DD_TIER=logging \

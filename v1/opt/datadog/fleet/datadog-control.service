@@ -5,11 +5,11 @@ Description=Datadog Agent for Mesos master, Marathon & Zookeeper
 After=docker.service bootstrap.service
 
 [Service]
+EnvironmentFile=/etc/environment
 # CONTROL_ELB should be set in etcd
 # It should be run on all mesos master nodes
 # Look at adobeplatform/ethos-dd-agent for what ports those 3 should be running on
-Environment="IMAGE=etcdctl get /images/ethos-dd-agent"
-EnvironmentFile=/etc/environment
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/ethos-dd-agent"
 User=core
 Restart=always
 TimeoutStartSec=0
@@ -22,13 +22,13 @@ ExecStart=/usr/bin/bash -c \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /proc/:/host/proc/:ro \
 -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
--e API_KEY=`etcdctl get /datadog/config/api-key` \
--e MESOS_HOST=`etcdctl get /environment/CONTROL_ELB` \
+-e API_KEY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /datadog/config/api-key` \
+-e MESOS_HOST=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/CONTROL_ELB` \
 -e HOST_IP=`hostname -i` \
--e MARATHON_USERNAME=`etcdctl get /marathon/config/username` \
--e MARATHON_PASSWORD=`etcdctl get /marathon/config/password` \
--e ZK_USERNAME=`etcdctl get /zookeeper/config/username` \
--e ZK_PASSWORD=`etcdctl get /zookeeper/config/password` \
+-e MARATHON_USERNAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /marathon/config/username` \
+-e MARATHON_PASSWORD=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /marathon/config/password` \
+-e ZK_USERNAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /zookeeper/config/username` \
+-e ZK_PASSWORD=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /zookeeper/config/password` \
 -e STACK_NAME=$STACK_NAME \
 -e DD_TIER=control \
 $($IMAGE)"

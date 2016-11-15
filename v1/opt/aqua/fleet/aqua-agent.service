@@ -5,9 +5,9 @@ Requires=docker.service
 
 [Service]
 EnvironmentFile=/etc/environment
-Environment="SCALOCK_TOKEN=etcdctl get /aqua/config/aqua-token"
-Environment="IMAGE=etcdctl get /images/scalock-agent"
-Environment="SCALOCK_GATEWAY_ENDPOINT=etcdctl get /aqua/config/gateway-host"
+Environment="SCALOCK_TOKEN=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/aqua-token"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/scalock-agent"
+Environment="SCALOCK_GATEWAY_ENDPOINT=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/gateway-host"
 
 User=core
 Restart=always

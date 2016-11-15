@@ -5,7 +5,7 @@ Before=journald-splunk-pipe.service
 After=docker.service bootstrap.service
 [Service]
 EnvironmentFile=/etc/environment
-Environment="IMAGE=etcdctl get /images/splunk"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/splunk"
 Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
 TimeoutStartSec=0
 Restart=always

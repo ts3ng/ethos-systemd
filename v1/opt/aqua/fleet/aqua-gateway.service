@@ -7,12 +7,12 @@ Requires=docker.service
 User=core
 TimeoutStartSec=10m
 EnvironmentFile=/etc/environment
-Environment="IMAGE=etcdctl get /images/scalock-gateway"
-Environment="DB_PASSWORD=etcdctl get /environment/RDSPASSWORD"
-Environment="DB_USERNAME=etcdctl get /flight-director/config/db-username"
-Environment="SCALOCK_DB_NAME=etcdctl get /aqua/config/db-name"
-Environment="SCALOCK_DB_ENDPOINT=etcdctl get /aqua/config/db-path"
-Environment="SCALOCK_AUDIT_DB_NAME=etcdctl get /aqua/config/db-audit-name"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/scalock-gateway"
+Environment="DB_PASSWORD=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/RDSPASSWORD"
+Environment="DB_USERNAME=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username"
+Environment="SCALOCK_DB_NAME=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/db-name"
+Environment="SCALOCK_DB_ENDPOINT=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/db-path"
+Environment="SCALOCK_AUDIT_DB_NAME=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /aqua/config/db-audit-name"
 
 Restart=always
 RestartSec=8

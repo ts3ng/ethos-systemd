@@ -5,8 +5,8 @@ Description=Datadog Agent for proxy things
 After=docker.service bootstrap.service
 
 [Service]
-Environment="IMAGE=etcdctl get /images/ethos-dd-agent"
 EnvironmentFile=/etc/environment
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/ethos-dd-agent"
 User=core
 Restart=always
 RestartSec=10
@@ -22,13 +22,13 @@ sudo -E /usr/bin/docker run --name dd-agent-proxy \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /proc/:/host/proc/:ro \
 -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
--e API_KEY=`etcdctl get /datadog/config/api-key` \
--e PROXY=`etcdctl get /capcom/config/proxy` \
--e CAPCOM_HOST=`etcdctl get /capcom/config/host` \
--e CAPCOM_PORT=`etcdctl get /capcom/config/port` \
--e RDS_FD_INSTANCE=`etcdctl get /flight-director/config/db-path | awk -F":" '{print $1}'` \
--e RDS_FD_USERNAME=`etcdctl get /flight-director/config/db-username` \
--e RDS_FD_PASSWORD=`etcdctl get /environment/RDSPASSWORD` \
+-e API_KEY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /datadog/config/api-key` \
+-e PROXY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/proxy` \
+-e CAPCOM_HOST=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/host` \
+-e CAPCOM_PORT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /capcom/config/port` \
+-e RDS_FD_INSTANCE=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-path | awk -F":" '{print $1}'` \
+-e RDS_FD_USERNAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username` \
+-e RDS_FD_PASSWORD=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/RDSPASSWORD` \
 -e STACK_NAME=$STACK_NAME \
 -e DD_TIER=proxy \
 $($IMAGE)"

@@ -15,7 +15,7 @@ SPLUNK_HEAVYFORWARDER_PROXY_PORT=$(etcd-get /splunk/config/heavyforwarder/proxy-
 if [ "$SPLUNK_ENABLE_FLUENTD_PROXY" == "1" ]; then
         # make sure the the internal ELB value is setup.
         if [ "$LOGGING_ELB" == "" ]; then
-                SPLUNK_HEC_ENDPOINT=`etcdctl watch /environment/LOGGING_ELB`
+                SPLUNK_HEC_ENDPOINT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh watch /environment/LOGGING_ELB`
         else
                 SPLUNK_HEC_ENDPOINT=$(etcd-get /environment/LOGGING_ELB)
         fi

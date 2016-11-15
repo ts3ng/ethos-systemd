@@ -5,7 +5,7 @@ Before=fluentd@.service
 After=docker.service bootstrap.service
 [Service]
 EnvironmentFile=/etc/environment
-Environment="IMAGE=etcdctl get /images/splunk-heavyforwarder"
+Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/splunk-heavyforwarder"
 Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
 User=core
 Restart=always

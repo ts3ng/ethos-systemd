@@ -5,20 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source /etc/environment
 source $DIR/../../lib/helpers.sh
 
-exit 0
-
 echo "-------Leader node, beginning etcd auth setup-------"
-
-etcd-set /etcdctl/config/root-user root
-etcd-set /etcdctl/config/read-user read-user
-etcd-set /etcdctl/config/write-user write-user
-
-ROOT_USERNAME=$(etcd-get /etcdctl/config/root-user)
-ROOT_PASSWORD=$(etcd-get /etcdctl/config/root-password)
-READ_USERNAME=$(etcd-get /etcdctl/config/read-user)
-READ_PASSWORD=$(etcd-get /etcdctl/config/read-password)
-WRITE_USERNAME=$(etcd-get /etcdctl/config/write-user)
-WRITE_PASSWORD=$(etcd-get /etcdctl/config/write-password)
 
 CRED_DIR="/opt/etcdctl"
 if [[ ! -d $CRED_DIR ]]; then
@@ -41,18 +28,18 @@ EOF
 
 # TODO: retrying of below etcd commands
 
-add_users $ROOT_USERNAME $ROOT_PASSWORD
-add_users $READ_USERNAME $READ_PASSWORD
-add_users $WRITE_USERNAME $WRITE_PASSWORD
+add_users $ETCDCTL_ROOT_USER $ETCDCTL_ROOT_PASSWORD
+add_users $ETCDCTL_READ_USER $ETCDCTL_READ_PASSWORD
+add_users $ETCDCTL_WRITE_USER $ETCDCTL_WRITE_PASSWORD
 
 # add root-user
-curl -L http://127.0.0.1:2379/v2/auth/users/${ROOT_USERNAME} -XPUT -d "@$CRED_DIR/root.json"
+curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_ROOT_USER} -XPUT -d "@$CRED_DIR/root.json"
 
 # add read-user
-curl -L http://127.0.0.1:2379/v2/auth/users/${READ_USERNAME} -XPUT -d "@$CRED_DIR/read-user.json"
+curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_READ_USER} -XPUT -d "@$CRED_DIR/read-user.json"
 
 # add write-user
-curl -L http://127.0.0.1:2379/v2/auth/users/${WRITE_USERNAME} -XPUT -d "@$CRED_DIR/write-user.json"
+curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_WRITE_USER} -XPUT -d "@$CRED_DIR/write-user.json"
 
 # read access
 etcdctl role add read-only
@@ -63,12 +50,12 @@ etcdctl role add read-write
 etcdctl role grant read-write -path '/*' -readwrite
 
 # Give read-user read access
-sudo echo '{"user": "'${READ_USERNAME}'", "grant": ["read-only"]}' > $CRED_DIR/read-only.json
-curl -L http://127.0.0.1:2379/v2/auth/users/${READ_USERNAME} -XPUT -d "@$CRED_DIR/read-only.json"
+sudo echo '{"user": "'${ETCDCTL_READ_USER}'", "grant": ["read-only"], "password": "'$ETCDCTL_READ_PASSWORD'"}' > $CRED_DIR/read-only.json
+curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_READ_USER} -XPUT -d "@$CRED_DIR/read-only.json"
 
 # Give read-write write access
-sudo echo '{"user": "'${WRITE_USERNAME}'", "grant": ["read-write"]}' > $CRED_DIR/read-write.json
-curl -L http://127.0.0.1:2379/v2/auth/users/${WRITE_USERNAME} -XPUT -d "@$CRED_DIR/read-write.json"
+sudo echo '{"user": "'${ETCDCTL_WRITE_USER}'", "grant": ["read-write"], "password": "'$ETCDCTL_WRITE_PASSWORD'"}' > $CRED_DIR/read-write.json
+curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_WRITE_USER} -XPUT -d "@$CRED_DIR/read-write.json"
 
 # Enable authentication
 etcdctl auth enable
