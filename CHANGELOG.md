@@ -1,3 +1,6 @@
+### 2016-11-10
+* Fix chronos-cleanup.sh bug that deletes old jobs that are still running
+
 ### 2016-11-04
 * Fix Bug to make sure logs are forwarding to both security and splunkAAS splunk endpoints
 * Fix Bug where logging server forwarder fleet cleanup units submited Globally instead of locally
