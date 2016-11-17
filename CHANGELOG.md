@@ -1,6 +1,10 @@
 ### 2016-11-10
 * Fix chronos-cleanup.sh bug that deletes old jobs that are still running
 
+### 2016-11-09
+* Flight Director update to add Chronos reconciliation on start up
+* Flight Director will mark orphaned deployments as "FAILED" automatically
+ 
 ### 2016-11-04
 * Fix Bug to make sure logs are forwarding to both security and splunkAAS splunk endpoints
 * Fix Bug where logging server forwarder fleet cleanup units submited Globally instead of locally
@@ -11,9 +15,7 @@
 
 ### 2016-11-02
 * ETCD Auth
-
-### 2016-11-02
-* Flight Director fixes for creating DB and Maratyjon reconciliation on start up
+* Flight Director fixes for creating DB and Marathon reconciliation on start up
 * Sets Flight Director to use localhost for Mesos instead of buggy ELB
 * Removed optional environment variable from booster fleet
 
