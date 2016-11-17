@@ -7,7 +7,7 @@ source $DIR/../../lib/helpers.sh
 
 echo "-------Leader node, beginning writing custom values to etcd-------"
 
-DL_TABLE="sudo docker run --rm behance/docker-aws-secrets-downloader --table $SECRETS_TABLE"
+DL_TABLE="sudo docker run --rm behance/docker-aws-secrets-downloader:v2.0.0 --table $SECRETS_TABLE"
 # Get all available secrets and configs
 AV_SECRETS=$($DL_TABLE --key secrets)
 AV_CONFIGS=$($DL_TABLE --key configs)

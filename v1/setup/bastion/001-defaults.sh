@@ -13,7 +13,7 @@ echo "-------Bastion node, beginning writing all default values to etcd-------"
 
 # TODO: this overloads the machine
 
-etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:latest"
+etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secrets-downloader:v2.0.0"
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 # Add any bastion-specific etcd keys here

@@ -4,8 +4,8 @@ Description=Write a file with the etcd peers that we should bootstrap to
 [Service]
 Restart=on-failure
 RestartSec=10
-ExecStartPre=/usr/bin/docker pull index.docker.io/monsantoco/etcd-aws-cluster:latest
-ExecStartPre=/usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster:latest
+ExecStartPre=/usr/bin/docker pull index.docker.io/behance/etcd-aws-cluster:v1.0.0
+ExecStartPre=/usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ behance/etcd-aws-cluster:v1.0.0
 ExecStart=/usr/bin/systemctl start etcd2
 
 [Install]

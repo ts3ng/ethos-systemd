@@ -9,10 +9,10 @@ echo "-------Leader node, beginning optional setup scripts-------"
 IMAGE=$(etcd-get /images/secrets-downloader)
 docker pull $IMAGE
 
-SERVICES_OVERRIDE=$(sudo docker run --rm behance/docker-aws-secrets-downloader --table $SECRETS_TABLE --key configs | grep /environment/services)
+SERVICES_OVERRIDE=$(sudo docker run --rm behance/docker-aws-secrets-downloader:v2.0.0 --table $SECRETS_TABLE --key configs | grep /environment/services)
 
 if [[ ! -z $SERVICES_OVERRIDE ]]; then
-	SERVICES=$(sudo docker run --rm behance/docker-aws-secrets-downloader --table $SECRETS_TABLE --key configs --name /environment/services)
+	SERVICES=$(sudo docker run --rm behance/docker-aws-secrets-downloader:v2.0.0 --table $SECRETS_TABLE --key configs --name /environment/services)
 
 	CONFIG_PATH=`echo $SERVICES | cut -d' ' -f1`
 	CONFIG_VAL=`echo $SERVICES | cut -d' ' -f2-`

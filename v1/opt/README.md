@@ -41,7 +41,7 @@ Your `001-images.sh` file inside of `/opt/demoservice/setup/leader` should look 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../lib/helpers.sh
 
-etcd-set /images/demoservice-agent "index.docker.io/organization/demoservice-agent:latest"
+etcd-set /images/demoservice-agent "index.docker.io/organization/demoservice-agent:v1.0.0"
 
 ```
 

@@ -11,7 +11,7 @@ Restart=always
 RestartSec=20
 TimeoutStartSec=0
 
-ExecStartPre=/usr/bin/sh -c "docker pull index.docker.io/behance/iam-docker:latest"
+ExecStartPre=/usr/bin/sh -c "docker pull index.docker.io/behance/iam-docker:v1.0.0"
 ExecStartPre=-/usr/bin/docker kill iam-proxy
 ExecStartPre=-/usr/bin/docker rm -f iam-proxy
 
@@ -20,7 +20,7 @@ ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   --volume /var/run/docker.sock:/var/run/docker.sock \
   --restart=always \
   --net=host \
-  behance/iam-docker:latest"
+  behance/iam-docker:v1.0.0"
 
 ExecStop=-/usr/bin/docker stop iam-proxy
 
