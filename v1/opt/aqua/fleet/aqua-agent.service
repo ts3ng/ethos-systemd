@@ -19,7 +19,7 @@ ExecStartPre=-/usr/bin/docker kill aqua-launcher
 ExecStartPre=-/usr/bin/docker rm aqua-launcher
 ExecStartPre=-/home/core/ethos-systemd/v1/opt/aqua/util/aqua-socket.sh
 ExecStart=/usr/bin/bash -c  "if [[ -f /etc/profile.d/etcdctl.sh ]]; then source /etc/profile.d/etcdctl.sh;fi &&  \
-sudo docker run --name=aqua-launcher -v /var/run/docker.sock:/var/run/docker.sock  \
+sudo docker run --name=aqua-launcher --privileged --userns=host -v /var/run/docker.sock:/var/run/docker.sock  \
 -e SCALOCK_SERVER=$($SCALOCK_GATEWAY_ENDPOINT)  \
 -e SCALOCK_TOKEN=$($SCALOCK_TOKEN)  \
 -e RESTART_CONTAINERS=no \

@@ -30,6 +30,8 @@ ExecStartPre=-/usr/bin/docker rm booster
 ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   --name booster \
   --net=host \
+  --privileged \
+  --userns=host \
   -e BOOSTER_NO_PERSISTENCE=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/nopersistence) \
   -e BOOSTER_DB_HOST=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-path | cut -d: -f1) \
   -e BOOSTER_DB_USER=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username) \

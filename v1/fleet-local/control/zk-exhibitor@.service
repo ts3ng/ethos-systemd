@@ -21,6 +21,8 @@ ExecStartPre=-/usr/bin/docker rm zk-exhibitor
 
 ExecStart=/usr/bin/bash -c "sudo docker run \
   --name=zk-exhibitor \
+  --privileged \
+  --userns=host \
   -p 8181:8181 \
   -p 2181:2181 \
   -p 2888:2888 \
@@ -33,7 +35,7 @@ ExecStart=/usr/bin/bash -c "sudo docker run \
   -e ZK_PASSWORD=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /zookeeper/config/password) \
   -e AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document|jq .region) \
   -e HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4) \
-  $($IMAGE)"
+  $($IMAGE) bash -ex /opt/exhibitor/wrapper.sh"
 
 ExecStop=-/usr/bin/docker stop zk-exhibitor
 

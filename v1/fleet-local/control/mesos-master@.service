@@ -26,6 +26,7 @@ ExecStartPre=-/usr/bin/docker rm mesos-master
 ExecStart=/usr/bin/bash -c "sudo docker run \
   --name=mesos-master \
   --privileged \
+  --userns=host \
   --net=host \
   -v /var/lib/mesos/master:/var/lib/mesos/master \
   -v /opt/mesos/credentials:/opt/mesos/credentials:ro \

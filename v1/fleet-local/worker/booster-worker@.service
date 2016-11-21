@@ -23,6 +23,8 @@ ExecStartPre=-/usr/bin/docker rm booster
 ExecStart=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && /usr/bin/docker run \
   --name booster \
   --net=host \
+  --privileged \
+  --userns=host \
   -e BOOSTER_NO_PERSISTENCE=true \
   -e BOOSTER_ENABLED=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/enabled) \
   -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
