@@ -1,3 +1,6 @@
+### 2016-11-18
+* BreakFix for aqua agent issue where aqua agent throws error:Cannot connect to the Docker daemon
+
 ### 2016-11-10
 * Fix chronos-cleanup.sh bug that deletes old jobs that are still running
 
