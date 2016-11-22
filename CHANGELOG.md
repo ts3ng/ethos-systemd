@@ -1,3 +1,7 @@
+### 2016-11-22
+* Disable logging config service on logging host by default.
+* Timeouts added to splunk-fluentd service to avoid docker pull timeouts in EU|AP regions.
+
 ### 2016-11-18
 * BreakFix for aqua agent issue where aqua agent throws error:Cannot connect to the Docker daemon
 
@@ -7,10 +11,10 @@
 ### 2016-11-09
 * Flight Director update to add Chronos reconciliation on start up
 * Flight Director will mark orphaned deployments as "FAILED" automatically
- 
+
 ### 2016-11-04
-* Fix Bug to make sure logs are forwarding to both security and splunkAAS splunk endpoints
-* Fix Bug where logging server forwarder fleet cleanup units submited Globally instead of locally
+* Fix bug to make sure logs are forwarding to both security and splunkAAS splunk endpoints
+* Fix bug where logging server forwarder fleet cleanup units submited globally instead of locally
 * Remove encryption of env variables from aqua
 
 ### 2016-10-31

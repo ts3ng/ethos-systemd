@@ -13,6 +13,7 @@ etcd-set /splunk/config/heavyforwarder-auth "admin:changeme"
 etcd-set /splunk/config/heavyforwarder/restart 1
 etcd-set /splunk/config/heavyforwarder/restarthour 0
 etcd-set /splunk/config/logging-config/poller-frequency 10
+etcd-set /splunk/config/logging-config/enable 0
 # secops defaults
 etcd-set /splunk/config/secops/enable-forwarder 0
 etcd-set /splunk/config/secops/forwarder-server-list ""
@@ -55,6 +56,5 @@ etcd-set /splunk/config/universalforwarder/restarthour 0
 etcd-set /splunk/config/syslog-scrub-regex "s/\(-e\ [^=]*\)=[^\ ]*/\1=****** /g"
 etcd-set /splunk/config/scrub-syslog 1
 etcd-set /splunk/config/heavyforwarder/scrub-syslog 0
-
 # make logging elb availible to etcd
 etcd-set /environment/LOGGING_ELB $FLUENTD_INTERNAL_ELB

@@ -18,7 +18,8 @@ Environment="LABEL_VOLUME=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splun
 Environment="LABEL_TYPE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/label-type"
 Environment="SPLUNK_HEAVYFORWARDER_ENDPOINT=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder-endpoint"
 Environment="SPLUNK_HEAVYFORWARDER_AUTH=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder-auth"
-Environemnt="POLLER_FREQUENCY=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/logging-config/poller-frequency"
+Environment="POLLER_FREQUENCY=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/logging-config/poller-frequency"
+Environment="ENABLE_LOGGING_CONFIG=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/logging-config/enable"
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill logging-config
 ExecStartPre=-/usr/bin/docker rm logging-config
@@ -35,6 +36,7 @@ sudo -E /usr/bin/docker run --name logging-config \
 -e LABEL_VOLUME=$($LABEL_VOLUME) \
 -e LABEL_TYPE=$($LABEL_TYPE) \
 -e POLLER_FREQUENCY=$($POLLER_FREQUENCY) \
+-e ENABLE_LOGGING_CONFIG=$($ENABLE_LOGGING_CONFIG) \
 $($IMAGE)"
 
 ExecStop=-/usr/bin/docker stop logging-config

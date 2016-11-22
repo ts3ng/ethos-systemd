@@ -3,7 +3,11 @@ Description=Splunk Fluentd Forwarder
 Requires=docker.service
 Before=fluentd@.service
 After=docker.service bootstrap.service
+
 [Service]
+Timeout=10m
+TimeoutStartSec=10m
+TimeoutStopSec=90s
 EnvironmentFile=/etc/environment
 Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/splunk-heavyforwarder"
 Environment="INSTANCEHOSTNAME=curl -s http://169.254.169.254/latest/meta-data/hostname"
@@ -28,6 +32,7 @@ sudo -E /usr/bin/docker run --name splunk-fluentd \
 -e SPLUNK_CMD='edit user admin -password changedme -role admin -auth admin:changeme' \
 $($IMAGE)"
 ExecStop=/usr/bin/docker stop splunk-fluentd
+
 [X-Fleet]
 Global=false
 MachineMetadata=role=logging
