@@ -1,4 +1,5 @@
 ### 2016-11-22
+* Flight Director 1.10: support for x5u header keys
 * Disable logging config service on logging host by default.
 * Timeouts added to splunk-fluentd service to avoid docker pull timeouts in EU|AP regions.
 

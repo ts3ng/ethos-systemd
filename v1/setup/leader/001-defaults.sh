@@ -17,7 +17,7 @@ etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secr
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.5.0-0.1.20160824153434.ubuntu1404-mesos-1.0.0"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:697d304cf2cbd0b6d2c10179292d7c73664470d6"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:c9a65ab6990f3c29d164a4588d872714d4361f6e"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v1.3.0"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:1.0.1-2.0.93.ubuntu1404"
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:ns1.5"
@@ -83,6 +83,7 @@ etcd-set /flight-director/config/marathon-master-protocol http
 etcd-set /flight-director/config/allow-marathon-unverified-tls false
 etcd-set /flight-director/config/mesos-master-protocol http
 etcd-set /flight-director/config/authorizer-type airlock
+etcd-set /flight-director/config/airlock-key-location-whitelist be-moonbeam-qe.s3.amazonaws.com
 etcd-set /flight-director/config/iam-role-label com.swipely.iam-docker.iam-profile
 etcd-set /flight-director/config/scaler-protocol http
 etcd-set /flight-director/config/scaler-endpoint localhost:2042
