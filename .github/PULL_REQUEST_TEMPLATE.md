@@ -16,8 +16,6 @@ Is an A/B required?
 
 Are you dependent on new secrets, or infrastructure in any way?
 
-Did you update CHANGELOG.md?
-
 ## Secrets or Configs Updates
 _If you added any secrets or configs in secrets.json that are required in ethos-systemd, please describe them here_
 
