@@ -1,3 +1,6 @@
+### 2016-11-29
+* Aqua Version 1.3.1 for server,gateway and agent with a fix for timeout issues
+
 ### 2016-11-22
 * Flight Director 1.10: support for x5u header keys
 * Disable logging config service on logging host by default.
