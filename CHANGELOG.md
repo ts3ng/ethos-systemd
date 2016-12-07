@@ -1,17 +1,26 @@
 ### 2016-12-07
 * Increased the timer interval for the Docker cleanup script
 
+### 2016-12-06
+* Flight Director 1.12.1: bug fix - avoid race condition when checking for orphan deployments 
+
+### 2016-12-06
+* Flight Director 1.12.0: support for [external volumes](https://github.com/adobe-platform/flight-director/blob/master/docs/v2-api.md#external-volumes).
+
 ### 2016-11-30
+ 
 * Bumped fluentd-fowarder container to version that supports sumologic and instance metadata
 * Moved fluentd-forwarder script to its proper place in opt/fluentd/util
 * Modified fluentd-forwarder script to use IAM Proxy docker label
 to support new instance metdata policy
 * Updated fluentd config defaults to support both splunk and sumologic
-
+* Flight Director 1.11.1: support for [configurable healthchecks](https://github.com/adobe-platform/flight-director/blob/master/docs/v2-api.md#healthchecks).
+ 
+ 
 ### 2016-11-29
 * Aqua Version 1.3.1 for server,gateway and agent with a fix for timeout issues
 * Booster: stronger consistency when reading/writing the node list in etcd
-
+ 
 ### 2016-11-22
 * Flight Director 1.10: support for x5u header keys
 * Disable logging config service on logging host by default.
