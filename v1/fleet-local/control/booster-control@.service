@@ -1,11 +1,12 @@
 [Unit]
 Description=Booster Control @ %i
 Wants=mesos-master@%i.service
+After=mesos-master@%i.service
 
 [Service]
 EnvironmentFile=/etc/environment
 TimeoutStartSec=0
-TimeoutStopSec=2
+KillMode=none
 RestartSec=60
 User=core
 Restart=on-failure
@@ -13,20 +14,29 @@ Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/boost
 
 ExecStartPre=/usr/bin/sh -c "/usr/bin/docker pull $($IMAGE)"
 
-# mkdir so `etcdctl ls /booster/nodes` below doesn't fail
-ExecStartPre=-/usr/bin/sh -c "/home/core/ethos-systemd/v1/lib/etcdauth.sh mkdir /booster/nodes"
-
 # Set our internal hostname minus .ec2.internal so
-# ip-123.456.789.123.ec2.internal becomes ip-123.456.789.123 which is what
+# ip-123-456-789-123.ec2.internal becomes ip-123-456-789-123 which is what
 # inet:gethostname() reports
 #
 # This is only done for control tier nodes because they're expected to stick
-# around and epmd will create a full mesh without explicity registering worker
+# around and epmd will create a full mesh without explicitly registering worker
 # nodes
-ExecStartPre=/usr/bin/sh -c "/home/core/ethos-systemd/v1/lib/etcdauth.sh set /booster/nodes/$(echo %H | cut -d'.' --complement -s -f2-) true"
+#
+# Key format: pseudo csv of nodes: "," then ",,{node1}" then ",,{node1},{node2}"
+# This is because etcd v2 has issues with empty keys and CAS ops
+#
+# Race condition: if the etcd key is changed between the read and the write,
+# the fleet unit submission will fail. The ethos-systemd framework will then
+# retry the submission (in ethos-systemd/v1/lib/helpers.sh)
+
+ExecStartPre=/usr/bin/sh -c " \
+  ME=$(hostname | cut -d'.' --complement -s -f2-); \
+  NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get --quorum /booster/nodes); \
+  /home/core/ethos-systemd/v1/lib/etcdauth.sh set /booster/nodes $NODES,$ME --swap-with-value $NODES"
 
 ExecStartPre=-/usr/bin/docker kill booster
 ExecStartPre=-/usr/bin/docker rm booster
+
 ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   --name booster \
   --net=host \
@@ -39,7 +49,7 @@ ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   -e BOOSTER_STATSD_ADDITIONAL_TAGS=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/STACK_NAME) \
   -e BOOSTER_DB_DATABASE=booster \
   -e BOOSTER_ROLES=control_tier \
-  -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
+  -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get --quorum /booster/nodes) \
   -e BOOSTER_QUEUE_URI=http://localhost:2043 \
   -e BOOSTER_CLUSTER_SCALE_URI=http://localhost:2043 \
   -e BOOSTER_AIRLOCK_DEPLOY_TOKEN=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/airlock-deploy-token) \
@@ -47,6 +57,17 @@ ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   $($IMAGE)"
 
 ExecStop=-/usr/bin/docker stop booster
+
+# Remove myself from the node list
+ExecStopPost=/usr/bin/sh -c " \
+  ME=$(hostname | cut -d'.' --complement -s -f2-); \
+  NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get --quorum /booster/nodes); \
+  /home/core/ethos-systemd/v1/lib/etcdauth.sh set /booster/nodes $(echo $NODES | sed -e "s/,$ME//g") --swap-with-value $NODES; \
+  while [ $? != 0 ]; do \
+    sleep 1; \
+    NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get --quorum /booster/nodes); \
+    /home/core/ethos-systemd/v1/lib/etcdauth.sh set /booster/nodes $(echo $NODES | sed -e "s/,$ME//g") --swap-with-value $NODES; \
+  done"
 
 [Install]
 WantedBy=multi-user.target

@@ -117,6 +117,7 @@ etcd-set /mesos/config/username ethos
 ######################
 
 etcd-set /booster/config/nopersistence 1
+etcd-set /booster/nodes ","
 
 ######################
 #      SERVICES

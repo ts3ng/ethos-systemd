@@ -1,6 +1,7 @@
 [Unit]
 Description=Booster Worker @ %i
 Wants=mesos-slave@%i.service
+After=mesos-slave@%i.service
 
 [Service]
 EnvironmentFile=/etc/environment
@@ -15,9 +16,6 @@ ExecStartPre=/usr/bin/bash -c "[ -f /home/core/.dockercfg ] || exit 1"
 ExecStartPre=/usr/bin/bash -c "[ -f /opt/mesos/credentials ] || exit 1"
 ExecStartPre=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 
-# mkdir so `etcdctl ls /booster/nodes` below doesn't fail
-ExecStartPre=-/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && /home/core/ethos-systemd/v1/lib/etcdauth.sh mkdir /booster/nodes"
-
 ExecStartPre=-/usr/bin/docker kill booster
 ExecStartPre=-/usr/bin/docker rm booster
 ExecStart=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && /usr/bin/docker run \
@@ -27,7 +25,7 @@ ExecStart=/usr/bin/sh -c ". /etc/profile.d/etcdctl.sh && /usr/bin/docker run \
   --userns=host \
   -e BOOSTER_NO_PERSISTENCE=true \
   -e BOOSTER_ENABLED=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /booster/config/enabled) \
-  -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh ls /booster/nodes | cut -d'/' --complement -s -f-3 | tr '\n' ',') \
+  -e BOOSTER_NODES=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get --quorum /booster/nodes) \
   -e BOOSTER_ROLES=mesos_agent \
   $($IMAGE)"
 
