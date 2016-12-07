@@ -10,7 +10,7 @@ WantedBy=multi-user.target
 # run 10 minutes after boot
 OnBootSec=10min
 # run every hour
-OnUnitActiveSec=1h
+OnUnitActiveSec=12h
 
 [X-Fleet]
 Global=true

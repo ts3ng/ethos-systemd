@@ -1,3 +1,6 @@
+### 2016-12-07
+* Increased the timer interval for the Docker cleanup script
+
 ### 2016-11-29
 * Aqua Version 1.3.1 for server,gateway and agent with a fix for timeout issues
 * Booster: stronger consistency when reading/writing the node list in etcd
