@@ -1,6 +1,13 @@
 ### 2016-12-07
 * Increased the timer interval for the Docker cleanup script
 
+### 2016-11-30
+* Bumped fluentd-fowarder container to version that supports sumologic and instance metadata
+* Moved fluentd-forwarder script to its proper place in opt/fluentd/util
+* Modified fluentd-forwarder script to use IAM Proxy docker label
+to support new instance metdata policy
+* Updated fluentd config defaults to support both splunk and sumologic
+
 ### 2016-11-29
 * Aqua Version 1.3.1 for server,gateway and agent with a fix for timeout issues
 * Booster: stronger consistency when reading/writing the node list in etcd

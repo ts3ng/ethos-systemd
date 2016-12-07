@@ -19,7 +19,7 @@ Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/fluen
 ExecStartPre=/usr/bin/sh -c "source /etc/profile.d/etcdctl.sh && docker pull $($IMAGE)"
 ExecStartPre=-/usr/bin/docker kill fluentd-forwarder
 ExecStartPre=-/usr/bin/docker rm -f fluentd-forwarder
-ExecStart=/home/core/ethos-systemd/v1/util/fluentd-forwarder.sh
+ExecStart=/home/core/ethos-systemd/v1/opt/fluentd/util/fluentd-forwarder.sh
 
 ExecStop=/usr/bin/docker stop -t 10 fluentd-forwarder
 ExecStop=/usr/bin/docker rm fluentd-forwarder

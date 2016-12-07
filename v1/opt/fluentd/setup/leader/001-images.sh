@@ -3,4 +3,4 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/../../../../lib/helpers.sh
 
-etcd-set /images/fluentd "index.docker.io/behance/docker-fluentd:1.0.7"
+etcd-set /images/fluentd "index.docker.io/behance/docker-fluentd:dcos-v1.3.15"
