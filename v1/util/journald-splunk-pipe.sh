@@ -14,17 +14,17 @@ JOURNALD_PROXY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/h
 SYSTEM_TOKEN=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/system-token`
 LOG_SCRUB_REGEX=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/syslog-scrub-regex`
 ENABLE_SYSLOG_SCRUB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/scrub-syslog`
-ENABLE_SECOPS=`etcdctl get /splunk/config/secops/enable-forwarder`
-ENABLE_CLOUDOPS=`etcdctl get /splunk/config/cloudops/enable-forwarder`
-LOGGING_PORT=`etcdctl get /splunk/config/heavyforwarder/proxy-port`
-LOGGING_ELB=`etcdctl get /environment/LOGGING_ELB`
-LOGGING_INDEX=`etcdctl get /splunk/config/cloudops/index`
-JOURNALD_PROXY=`etcdctl get /splunk/config/heavyforwarder/journald-proxy`
-SYSTEM_TOKEN=`etcdctl get /splunk/config/heavyforwarder/system-token`
-LOG_SCRUB_REGEX=`etcdctl get /splunk/config/syslog-scrub-regex`
-ENABLE_SYSLOG_SCRUB=`etcdctl get /splunk/config/scrub-syslog`
-CLOUDOPS_HEC_ENDPOINT=`etcdctl get /logging/config/fluentd-httpext-splunk-url`
-SPLUNK_HEC_HVC_TOKEN=`etcdctl get /logging/config/fluentd-httpext-splunk-hec-hvc-token`
+ENABLE_SECOPS=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/secops/enable-forwarder`
+ENABLE_CLOUDOPS=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/cloudops/enable-forwarder`
+LOGGING_PORT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/proxy-port`
+LOGGING_ELB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/LOGGING_ELB`
+LOGGING_INDEX=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/cloudops/index`
+JOURNALD_PROXY=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/journald-proxy`
+SYSTEM_TOKEN=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/heavyforwarder/system-token`
+LOG_SCRUB_REGEX=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/syslog-scrub-regex`
+ENABLE_SYSLOG_SCRUB=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /splunk/config/scrub-syslog`
+CLOUDOPS_HEC_ENDPOINT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /logging/config/fluentd-httpext-splunk-url`
+SPLUNK_HEC_HVC_TOKEN=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /logging/config/fluentd-httpext-splunk-hec-hvc-token`
 
 if [ "$JOURNALD_PROXY" == "1" ]; then
         logger "Journald proxy enabled"

@@ -5,8 +5,8 @@ source $MESOSLIB/vercomp.sh
 
 MESOS_UNIT=$(systemctl list-units | egrep 'dcos-mesos-slave|mesos-slave@|dcos-mesos-master|mesos-master'| awk '{ print $1}' )
 
-MESOS_USER="$(etcdctl get /mesos/config/username  2>/dev/null)"
-MESOS_PW="$(etcdctl get /mesos/config/password  2>/dev/null)"
+MESOS_USER="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /mesos/config/username  2>/dev/null)"
+MESOS_PW="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /mesos/config/password  2>/dev/null)"
 MESOS_CREDS=""
 if [ ! -z "${MESOS_USER}" -a ! -z "${MESOS_PW}" ];then
    MESOS_CREDS="-u ${MESOS_USER}:${MESOS_PW}"
@@ -20,9 +20,9 @@ if [ 0 -lt $( systemctl list-units | grep -c 'dcos-') ]; then
     until (ping -c 1 leader.mesos) ; do
 	sleep 1
     done
-elif ( etcdctl get /flight-director/config/mesos-master >/dev/null 2>&1 ); then
-    MESOS_MASTER=$(etcdctl get /flight-director/config/mesos-master)
-    MESOS_PROTO=$(etcdctl get /flight-director/config/mesos-master-protocol)
+elif ( /home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/mesos-master >/dev/null 2>&1 ); then
+    MESOS_MASTER=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/mesos-master)
+    MESOS_PROTO=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/mesos-master-protocol)
 else
     error "Don't know where mesos master is located"
 fi
@@ -53,9 +53,9 @@ if [ $? -ne 1  ]; then
 fi
 
 # Get marathon info from etcd
-MARATHON_USER="$(etcdctl get /marathon/config/username)"
-MARATHON_PASSWORD="$(etcdctl get /marathon/config/password)"
-MARATHON_ENDPOINT="$(etcdctl get /flight-director/config/marathon-master)"
+MARATHON_USER="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /marathon/config/username)"
+MARATHON_PASSWORD="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /marathon/config/password)"
+MARATHON_ENDPOINT="$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/marathon-master)"
 
 MARATHON_CREDS=""
 if [ ! -z "${MARATHON_USER}" -a ! -z "${MARATHON_PASSWORD}" ];then

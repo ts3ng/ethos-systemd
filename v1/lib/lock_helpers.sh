@@ -43,7 +43,7 @@ SKOPOS_HOST_STATE=/adobe.com/locks/host-state
 SKOPOS_FEATURE_FLIP=/adobe.com
 MACHINEID=$(cat /etc/machine-id)
 
-IMAGE=$(etcdctl get /images/etcd-locks)
+IMAGE=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/etcd-locks)
 
 BOOSTER_LOCK=booster_drain
 UPDATE_DRAIN_LOCK=coreos_drain
@@ -67,9 +67,9 @@ assert_root(){
 #
 #
 protect_from_autoscaler(){
-    if [ 1 -lt $( (etcdctl ls --recursive /_coreos.com/fleet/machines | grep object | xargs -n 1 -IXX etcdctl get XX | jq -r '. | [ .PublicIP,.ID] | join(" ")') | grep -c "${LOCAL_IP}" ) ] ; then
+    if [ 1 -lt $( (/home/core/ethos-systemd/v1/lib/etcdauth.sh ls --recursive /_coreos.com/fleet/machines | grep object | xargs -n 1 -IXX /home/core/ethos-systemd/v1/lib/etcdauth.sh get XX | jq -r '. | [ .PublicIP,.ID] | join(" ")') | grep -c "${LOCAL_IP}" ) ] ; then
 	error_log "Detected autoscaler killing node.  Same IP with more than 1 machine id"
-	reboot_holder="$((etcdctl ls --recursive /_coreos.com/fleet/machines | grep object | xargs -n 1 -IXX etcdctl get XX | jq -r '. | [ .PublicIP,.ID] | join(" ")') |	grep ${LOCAL_IP} | grep -v $MACHINEID|awk '{print $2}' )"
+	reboot_holder="$((/home/core/ethos-systemd/v1/lib/etcdauth.sh ls --recursive /_coreos.com/fleet/machines | grep object | xargs -n 1 -IXX /home/core/ethos-systemd/v1/lib/etcdauth.sh get XX | jq -r '. | [ .PublicIP,.ID] | join(" ")') |	grep ${LOCAL_IP} | grep -v $MACHINEID|awk '{print $2}' )"
 	if [ ! -z "${reboot_holder}" ]; then
 	    error_log "releasing reboot lock held by dead node"
 	    unlock_reboot ${reboot_holder}
@@ -124,7 +124,7 @@ unlock_reboot(){
     
 cluster_init(){
     for j in ${CLUSTERWIDE_LOCKS}; do
-	etcdctl ls ${SKOPOS_CLUSTERWIDE_LOCKS}/$j  >/dev/null 2>&1
+	/home/core/ethos-systemd/v1/lib/etcdauth.sh ls ${SKOPOS_CLUSTERWIDE_LOCKS}/$j  >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	    echo "etcd path ${SKOPOS_CLUSTERWIDE_LOCKS}/$j locks already exists"
 	    continue
@@ -133,7 +133,7 @@ cluster_init(){
 	for i in control worker proxy; do
 	    docker run --net host -i --rm -e LOCKSMITHCTL_ENDPOINT=${LOCKSMITHCTL_ENDPOINT}  $IMAGE  locksmithctl --path ${SKOPOS_CLUSTERWIDE_LOCKS} --topic $j --group $i status 
 	    max_locks="1"
-	    x=$(etcdctl get ${SKOPOS_FEATURE_FLIP}/settings/etcd-locks/$j/num_$i 2>/dev/null )
+	    x=$(/home/core/ethos-systemd/v1/lib/etcdauth.sh get ${SKOPOS_FEATURE_FLIP}/settings/etcd-locks/$j/num_$i 2>/dev/null )
 	    if [ $? -eq 0 -a ! -z "$x" ]; then
 		max_locks=$x
 	    fi
@@ -175,7 +175,7 @@ unlock_host(){
 }
 
 host_state(){
-    etcdctl get ${SKOPOS_PERHOST_LOCKS}/$MACHINEID| jq -r --arg machineId $MACHINEID '.holders|(if length > 0 then (.| join(" ")) else "" end)'
+    /home/core/ethos-systemd/v1/lib/etcdauth.sh get ${SKOPOS_PERHOST_LOCKS}/$MACHINEID| jq -r --arg machineId $MACHINEID '.holders|(if length > 0 then (.| join(" ")) else "" end)'
 }
 
 #
@@ -190,7 +190,7 @@ cluster_lock_val(){
     topic=$1
     if [ ! -z "$2" ]; then tier=$2;  else tier=${NODE_ROLE} ; fi
 
-    etcdctl get ${SKOPOS_CLUSTERWIDE_LOCKS}/$topic/groups/$tier/semaphore| jq -r --arg machineId $MACHINEID '.holders|(if length > 0 then (.| join(" ")) else "" end)'
+    /home/core/ethos-systemd/v1/lib/etcdauth.sh get ${SKOPOS_CLUSTERWIDE_LOCKS}/$topic/groups/$tier/semaphore| jq -r --arg machineId $MACHINEID '.holders|(if length > 0 then (.| join(" ")) else "" end)'
 }
 
 am_cluster_lock_holder(){
@@ -203,7 +203,7 @@ am_cluster_lock_holder(){
     fi
     tier=$2
 
-    etcdctl get ${SKOPOS_CLUSTERWIDE_LOCKS}/$topic/groups/$tier/semaphore| jq --arg machineId $MACHINEID '.holders|(length > 0 and (.[] | contains($machineId)))'
+    /home/core/ethos-systemd/v1/lib/etcdauth.sh get ${SKOPOS_CLUSTERWIDE_LOCKS}/$topic/groups/$tier/semaphore| jq --arg machineId $MACHINEID '.holders|(length > 0 and (.[] | contains($machineId)))'
 }
 
 
