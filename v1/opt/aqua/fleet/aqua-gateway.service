@@ -23,8 +23,6 @@ ExecStartPre=-/usr/bin/docker kill aqua-gateway
 ExecStartPre=-/usr/bin/docker rm aqua-gateway
 ExecStart=/usr/bin/sh -c "sudo docker run -p 3622:3622 --name aqua-gateway \
   --net=host \
-  --privileged \
-  --userns=host \
   -e SCALOCK_DBUSER=$($DB_USERNAME) \
   -e SCALOCK_DBPASSWORD=$($DB_PASSWORD) \
   -e SCALOCK_DBNAME=$($SCALOCK_DB_NAME) \

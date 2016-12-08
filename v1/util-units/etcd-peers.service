@@ -6,7 +6,7 @@ Restart=on-failure
 RestartSec=10
 
 ExecStartPre=/usr/bin/docker pull index.docker.io/behance/etcd-aws-cluster:v1.0.0
-ExecStartPre=/usr/bin/docker run --rm --privileged --userns=host -v /etc/sysconfig/:/etc/sysconfig/ behance/etcd-aws-cluster:v1.0.0
+ExecStartPre=/usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ behance/etcd-aws-cluster:v1.0.0
 ExecStart=/usr/bin/systemctl start etcd2
 
 [Install]

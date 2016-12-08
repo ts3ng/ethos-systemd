@@ -30,8 +30,6 @@ ExecStartPre=-/usr/bin/docker rm chronos
 ExecStart=/usr/bin/sh -c "docker run \
   --name chronos \
   --net=host \
-  --privileged \
-  --userns=host \
   --read-only \
   -v /opt/mesos/framework-secret:/opt/mesos/framework-secret:ro \
   -v /opt/mesos/log4j.properties:/opt/mesos/log4j.properties:ro \

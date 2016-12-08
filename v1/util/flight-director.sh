@@ -25,8 +25,6 @@ fi
 /usr/bin/docker run \
   --name flight-director \
   --net='host' \
-  --privileged \
-  --userns=host \
   -e LOG_APP_NAME=flight-director \
   -e FD_API_SERVER_PORT=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/api-server-port` \
   -e FD_CHRONOS_MASTER=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/chronos-master` \

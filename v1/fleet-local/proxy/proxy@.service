@@ -26,8 +26,6 @@ ExecStart=/usr/bin/bash -c "source /etc/profile.d/etcdctl.sh && \
   echo $($CMD) | xargs docker run \
     --name proxy \
     --net='host' \
-    --privileged \
-	--userns=host \
     -m $(($(grep MemTotal /proc/meminfo | awk '{print $2}')*3/4/1024))M \
     -v /etc/$($PROXY):/etc/$($PROXY) \
     $($IMAGE)"
