@@ -18,3 +18,22 @@ sudo curl -H "Content-Type: application/json" -u administrator:$SCALOCK_ADMIN_PA
 
 sudo curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"name": "Ethos", "type": "security.profile", "description": "Ethos Default RunTime Profile", "encrypt_all_envs": true}' -u administrator:$SCALOCK_ADMIN_PASSWORD http://localhost:8083/api/v1/securityprofiles
 
+CRED_DIR="/opt/aqua"
+if [[ ! -d $CRED_DIR ]]; then
+    sudo mkdir $CRED_DIR -p
+fi
+
+sudo chmod 0755 $CRED_DIR
+sudo chown -R $(whoami):$(whoami) $CRED_DIR
+
+sudo curl -u administrator:$SCALOCK_ADMIN_PASSWORD -X GET http://localhost:8083/api/v1/runtime_policy > $CRED_DIR/threat1_mitigation.json
+
+sudo chmod 0755 $CRED_DIR/threat1_mitigation.json
+
+sudo cat $CRED_DIR/threat1_mitigation.json | jq --arg default_security_profile Ethos '. + {default_security_profile: $default_security_profile}' > $CRED_DIR/threat_mitigation.json
+
+sudo chmod 0755 $CRED_DIR/threat_mitigation.json
+
+sudo curl -u administrator:$SCALOCK_ADMIN_PASSWORD -X PUT -d @$CRED_DIR/threat_mitigation.json http://localhost:8083/api/v1/runtime_policy
+
+sudo rm -rf $CRED_DIR
