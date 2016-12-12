@@ -4,29 +4,32 @@ Wants=booster-control@%i.service
 
 [Service]
 EnvironmentFile=/etc/environment
-TimeoutStartSec=0
-TimeoutStopSec=2
+TimeoutStartSec=30
+KillMode=none
 RestartSec=60
 User=core
 Restart=on-failure
 Environment="IMAGE=/home/core/ethos-systemd/v1/lib/etcdauth.sh get /images/booster-sidekick"
 
-ExecStartPre=/usr/bin/sh -c "/usr/bin/docker pull $($IMAGE)"
-
+ExecStartPre=-/usr/bin/docker stop booster-sidekick
 ExecStartPre=-/usr/bin/docker kill booster-sidekick
 ExecStartPre=-/usr/bin/docker rm booster-sidekick
+
+ExecStartPre=/usr/bin/sh -c "/usr/bin/docker pull $($IMAGE)"
+
 ExecStart=/usr/bin/sh -c "/usr/bin/docker run \
   -e DB_DATABASE=booster \
   -e DB_ENGINE=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-engine` \
   -e DB_PASSWORD=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/RDSPASSWORD` \
   -e DB_HOST=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-path` \
   -e DB_USERNAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /flight-director/config/db-username` \
+  -e CONTROL_STACK_NAME=`/home/core/ethos-systemd/v1/lib/etcdauth.sh get /environment/STACK_NAME` \
   -e PORT=2043 \
   -p 2043:2043 \
   --name booster-sidekick \
   $($IMAGE)"
 
-ExecStop=-/usr/bin/docker stop booster-sidekick
+ExecStop=/usr/bin/docker stop booster-sidekick
 
 [Install]
 WantedBy=multi-user.target
