@@ -60,6 +60,9 @@ curl -L http://127.0.0.1:2379/v2/auth/users/${ETCDCTL_WRITE_USER} -XPUT -d "@$CR
 # Enable authentication
 etcdctl auth enable
 
+# revoke guest role read:write access
+/home/core/ethos-systemd/v1/lib/etcdauth.sh role revoke guest -path '/*' -readwrite
+
 sudo rm -rf $CRED_DIR
 
 echo "-------Leader node, done etcd auth setup-------"

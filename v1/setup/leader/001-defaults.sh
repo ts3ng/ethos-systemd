@@ -42,7 +42,7 @@ etcd-set /bootstrap.service/capcom              true
 etcd-set /capcom/config/applications            '[]'
 etcd-set /capcom/config/host                    127.0.0.1
 etcd-set /capcom/config/db-path                 ./capcom.db
-etcd-set /capcom/config/kv-store-server-address http://$CAPCOM_KV_ENDPOINT
+etcd-set /capcom/config/kv-store-server-address http://$ETCDCTL_ROOT_USER:$ETCDCTL_ROOT_PASSWORD@$CAPCOM_KV_ENDPOINT
 etcd-set /capcom/config/kv-ttl                  10
 etcd-set /capcom/config/log-level               "info"
 etcd-set /capcom/config/log-location            "stdout"
@@ -72,7 +72,7 @@ etcd-set /flight-director/config/debug false
 etcd-set /flight-director/config/event-interface ''
 etcd-set /flight-director/config/event-port 2001
 etcd-set /flight-director/config/fixtures "prod"
-etcd-set /flight-director/config/kv-server http://localhost:2379
+etcd-set /flight-director/config/kv-server http://$ETCDCTL_ROOT_USER:$ETCDCTL_ROOT_PASSWORD@localhost:2379
 etcd-set /flight-director/config/log-level "info"
 etcd-set /flight-director/config/log-location "stdout"
 etcd-set /flight-director/config/log-marathon-api-calls false
