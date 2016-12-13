@@ -17,13 +17,13 @@ etcd-set /images/secrets-downloader     "index.docker.io/behance/docker-aws-secr
 etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 etcd-set /images/chronos                "index.docker.io/mesosphere/chronos:chronos-2.5.0-0.1.20160824153434.ubuntu1404-mesos-1.0.0"
-etcd-set /images/flight-director        "index.docker.io/behance/flight-director:dc5b9901bedd873d37513e11a85224afdb1ba584"
+etcd-set /images/flight-director        "index.docker.io/behance/flight-director:13ab560c1b24914b87cdc4b8067c9ac2a58fdcf2"
 etcd-set /images/marathon               "index.docker.io/mesosphere/marathon:v1.3.0"
 etcd-set /images/mesos-master           "index.docker.io/mesosphere/mesos-master:1.0.1-2.0.93.ubuntu1404"
 etcd-set /images/zk-exhibitor           "index.docker.io/behance/docker-zk-exhibitor:v1.0.0"
 etcd-set /images/cfn-signal             "index.docker.io/behance/docker-cfn-bootstrap:v1.0.0"
 etcd-set /images/jenkins                "index.docker.io/jenkins:1.651.1"
-etcd-set /images/booster                "index.docker.io/behance/booster:0.7"
+etcd-set /images/booster                "index.docker.io/behance/booster:0.8"
 etcd-set /images/booster-sidekick       "index.docker.io/behance/booster-sidekick:0.3"
 
 etcd-set /images/capcom                 "index.docker.io/behance/capcom:55472229a28c118a4bd1e3f98e44ed8fac24350c"
