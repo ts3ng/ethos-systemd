@@ -18,6 +18,8 @@ etcd-set /images/klam-ssh               "index.docker.io/behance/klam-ssh:v1"
 
 # Add any bastion-specific etcd keys here
 
+etcd-set /klam/sshd-config/clientaliveinterval 900
+
 
 ######################
 #      SERVICES

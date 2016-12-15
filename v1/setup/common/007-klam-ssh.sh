@@ -128,6 +128,21 @@ if ! grep /opt/klam/lib/authorizedkeys_command.sh /etc/ssh/sshd_config; then
   echo 'AuthorizedKeysCommandUser root' >> sshd_config
   mv -f sshd_config /etc/ssh/sshd_config
 fi
+
+# Fetch etcd sshd configs
+CLIENTALIVEINTERVAL=$(etcd-get /klam/sshd-config/clientaliveinterval)
+if grep "ClientAliveInterval" /etc/ssh/sshd_config; then
+  sed -i "s/ClientAliveInterval.*/ClientAliveInterval ${CLIENTALIVEINTERVAL}/g" /etc/ssh/sshd_config
+else
+  echo "ClientAliveInterval ${CLIENTALIVEINTERVAL}" >> /etc/ssh/sshd_config
+fi
+
+if grep "ClientAliveCountMax" /etc/ssh/sshd_config; then
+  sed -i "s/ClientAliveCountMax.*/ClientAliveCountMax 0/g" /etc/ssh/sshd_config
+else
+  echo "ClientAliveCountMax 0" >> /etc/ssh/sshd_config
+fi
+
 cat /etc/ssh/sshd_config
 
 # Change ownership of authorizedkeys_command

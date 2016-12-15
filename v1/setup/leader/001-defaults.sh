@@ -93,6 +93,11 @@ etcd-set /flight-director/config/disable-v1-api false
 etcd-set /flight-director/config/app-log-driver journald
 
 ######################
+#     KLAM
+######################
+etcd-set /klam/sshd-config/clientaliveinterval 900
+
+######################
 #     ZOOKEEPER
 ######################
 
